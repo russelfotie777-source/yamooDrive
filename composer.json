@@ -1,0 +1,25 @@
+{
+    "name": "yamoo/drive",
+    "description": "Site de réservation Yamoo Drive",
+    "type": "project",
+    "require": {
+        "php": ">=8.2",
+        "anthropic-ai/sdk": "^1.0",
+        "guzzlehttp/guzzle": "^7.9"
+    },
+    "config": {
+        "platform": {
+            "php": "8.2.12"
+        },
+        "optimize-autoloader": true,
+        "sort-packages": true
+    },
+    "autoload": {
+        "psr-4": {
+            "Yamoo\\": "src/"
+        },
+        "files": [
+            "src/fonctions.php"
+        ]
+    }
+}
