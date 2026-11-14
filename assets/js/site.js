@@ -91,6 +91,14 @@
     if (!confirm(f.dataset.confirmer)) e.preventDefault();
   }));
 
+  // Logo : une fois le tracé fini, plus de masque ni de découpe, le dessin reste net.
+  document.querySelectorAll('.logo-arrivee').forEach((svg) => {
+    Promise.all(svg.getAnimations({ subtree: true }).map((a) => a.finished)).then(() => {
+      svg.classList.remove('logo-arrivee');
+      svg.querySelectorAll('[mask], [clip-path]').forEach((el) => { el.removeAttribute('mask'); el.removeAttribute('clip-path'); });
+    });
+  });
+
   // Moment signature de l'accueil, joué une seule fois puis retiré.
   // La classe est posée dans le HTML pour jouer dès le premier affichage.
   document.querySelectorAll('.signature-en-cours, .signature-confirmation').forEach((bloc) => {
