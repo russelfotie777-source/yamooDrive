@@ -1,7 +1,7 @@
 <footer class="pied">
   <div class="conteneur pied-grille">
     <div class="pied-marque">
-      <img src="<?= asset('img/marque/logo-sombre.png') ?>" alt="Yamoo Drive" width="148" height="48" loading="lazy">
+      <?php partiel('logo', ['id' => 'logo-pied']) ?>
       <p>Location de véhicules avec ou sans chauffeur au Cameroun. Yamoo Drive est la filiale mobilité de Yamoo Group, avec Yamoo Travel et Yamoo Media.</p>
     </div>
     <div>
