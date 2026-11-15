@@ -56,7 +56,48 @@ function base(): string
 function url(string $chemin = '/', array $params = []): string
 {
     $params = array_filter($params, fn ($v) => $v !== null && $v !== '');
-    return base() . $chemin . ($params ? '?' . http_build_query($params) : '');
+    return base() . Yamoo\Langue::prefixe() . $chemin . ($params ? '?' . http_build_query($params) : '');
+}
+
+// La page courante dans une autre langue, avec les mêmes paramètres.
+function url_langue(string $code, bool $absolue = false): string
+{
+    $requete = $_SERVER['QUERY_STRING'] ?? '';
+    $chemin = base() . Yamoo\Langue::prefixe($code) . Yamoo\Langue::$chemin . ($requete !== '' ? '?' . $requete : '');
+    if (!$absolue) {
+        return $chemin;
+    }
+    $https = ($_SERVER['HTTPS'] ?? '') === 'on' || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
+    return ($https ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . $chemin;
+}
+
+// Texte traduit. Les paramètres suivent le format des messages ICU :
+// t('{n, plural, one {# jour} other {# jours}}', ['n' => 3]).
+function t(string $texte, array $params = []): string
+{
+    $modele = Yamoo\Langue::traduit($texte);
+    if (!$params) {
+        return $modele;
+    }
+    $resultat = MessageFormatter::formatMessage(Yamoo\Langue::info('locale'), $modele, $params);
+    return $resultat === false ? $modele : $resultat;
+}
+
+// Variante pour les textes qui portent leur propre balisage (<strong>) : les valeurs sont échappées.
+function h(string $texte, array $params = []): string
+{
+    return t($texte, array_map(fn ($v) => is_string($v) ? e($v) : $v, $params));
+}
+
+// Libellé traduit d'un lieu de config/app.php : 'nom', 'court' ou 'detail'.
+function lieu(string $cle, string $champ = 'nom'): string
+{
+    return t((string) config("lieux.$cle.$champ"));
+}
+
+function nb_jours(int $n): string
+{
+    return t('{n, plural, one {# jour} other {# jours}}', ['n' => $n]);
 }
 
 function url_absolue(string $chemin = '/', array $params = []): string
@@ -75,13 +116,17 @@ function asset(string $chemin): string
 
 function fcfa(int|float $montant): string
 {
-    $f = new NumberFormatter('fr_FR', NumberFormatter::DECIMAL);
-    return $f->format(round($montant)) . ' FCFA';
+    $texte = nombre(round($montant)) . "\u{00A0}FCFA";
+    // En arabe, le montant reste un bloc lu de gauche à droite : « 60,000 FCFA ».
+    return Yamoo\Langue::info('sens') === 'rtl' ? "\u{2066}$texte\u{2069}" : $texte;
 }
 
 function nombre(int|float $n): string
 {
-    return (new NumberFormatter('fr_FR', NumberFormatter::DECIMAL))->format($n);
+    static $formats = [];
+    $locale = Yamoo\Langue::info('locale');
+    $formats[$locale] ??= new NumberFormatter($locale, NumberFormatter::DECIMAL);
+    return $formats[$locale]->format($n);
 }
 
 function maintenant(): DateTimeImmutable
@@ -97,11 +142,17 @@ function date_locale(string|DateTimeInterface $date): DateTimeImmutable
     return new DateTimeImmutable($date, new DateTimeZone(config('fuseau')));
 }
 
-// Formats : « 18 nov. », « mer. 18 nov. », « mercredi 18 novembre 2026 », « 09:00 ».
-function date_fr(string|DateTimeInterface $date, string $motif = 'd MMM'): string
+// Date dans la langue de la page, à partir d'un squelette ICU : « dMMM » donne « 18 nov. »
+// en français, « 18 Nov » en anglais, « 11月18日 » en chinois.
+function date_texte(string|DateTimeInterface $date, string $squelette = 'dMMM'): string
 {
-    $f = new IntlDateFormatter('fr_FR', IntlDateFormatter::NONE, IntlDateFormatter::NONE, config('fuseau'), null, $motif);
-    return $f->format(date_locale($date));
+    static $formats = [];
+    $locale = Yamoo\Langue::info('locale');
+    if (!isset($formats[$locale][$squelette])) {
+        $motif = (new IntlDatePatternGenerator($locale))->getBestPattern($squelette);
+        $formats[$locale][$squelette] = new IntlDateFormatter($locale, IntlDateFormatter::NONE, IntlDateFormatter::NONE, config('fuseau'), null, $motif);
+    }
+    return $formats[$locale][$squelette]->format(date_locale($date));
 }
 
 function heure(string|DateTimeInterface $date): string
@@ -109,17 +160,12 @@ function heure(string|DateTimeInterface $date): string
     return date_locale($date)->format('H:i');
 }
 
-function periode_fr(string $debut, string $fin): string
+function periode_texte(string $debut, string $fin): string
 {
     $d = date_locale($debut);
     $f = date_locale($fin);
-    $a = $d->format('Y') === $f->format('Y') ? '' : ' y';
-    return date_fr($d, 'EEE d MMM' . $a) . ', ' . heure($d) . ' – ' . date_fr($f, 'EEE d MMM' . $a) . ', ' . heure($f);
-}
-
-function pluriel(int $n, string $un, string $plusieurs): string
-{
-    return nombre($n) . "\u{00A0}" . ($n > 1 ? $plusieurs : $un);
+    $squelette = $d->format('Y') === $f->format('Y') ? 'EEEdMMM' : 'yMMMEEEd';
+    return date_texte($d, $squelette) . ', ' . heure($d) . ' – ' . date_texte($f, $squelette) . ', ' . heure($f);
 }
 
 // « +237677123456 » devient « +237 6 77 12 34 56 ».
@@ -155,7 +201,7 @@ function verifie_csrf(): void
     $jeton = $_POST['_csrf'] ?? ($_SERVER['HTTP_X_CSRF'] ?? '');
     if (!is_string($jeton) || !hash_equals(csrf(), $jeton)) {
         http_response_code(419);
-        vue('erreur', ['titre' => 'Page expirée', 'message' => 'La page est restée ouverte trop longtemps. Rechargez-la puis recommencez.']);
+        vue('erreur', ['titre' => t('Page expirée'), 'message' => t('La page est restée ouverte trop longtemps. Rechargez-la puis recommencez.')]);
         exit;
     }
 }

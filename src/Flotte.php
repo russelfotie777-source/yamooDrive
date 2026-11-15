@@ -11,12 +11,17 @@ final class Flotte
     {
         if (self::$vehicules === null) {
             self::$vehicules = [];
+            // Les textes de la flotte sont écrits en français et traduits ici, une fois par requête.
             foreach (require dirname(__DIR__) . '/config/flotte.php' as $slug => $v) {
                 $v['slug'] = $slug;
                 $v['court'] ??= $v['nom'];
-                $v['places_texte'] ??= $v['places'] . ' places';
+                $v['places_texte'] = isset($v['places_texte']) ? t($v['places_texte']) : t('{n} places', ['n' => $v['places']]);
+                $v['type'] = t($v['type']);
+                $v['resume'] = t($v['resume']);
+                $v['equipements'] = array_map('t', $v['equipements']);
+                $v['ideal'] = array_map('t', $v['ideal']);
+                $v['galerie'] = array_map(fn ($g) => [$g[0], t($g[1]), $g[2], $g[3]], $v['galerie'] ?? []);
                 $v['unites'] ??= 1;
-                $v['galerie'] ??= [];
                 self::$vehicules[$slug] = $v;
             }
         }
@@ -53,9 +58,9 @@ final class Flotte
     public static function formulesTexte(array $v): string
     {
         return match (true) {
-            isset($v['tarifs']['sans'], $v['tarifs']['avec']) => 'Avec ou sans chauffeur',
-            isset($v['tarifs']['avec']) => 'Avec chauffeur',
-            default => 'Sans chauffeur',
+            isset($v['tarifs']['sans'], $v['tarifs']['avec']) => t('Avec ou sans chauffeur'),
+            isset($v['tarifs']['avec']) => t('Avec chauffeur'),
+            default => t('Sans chauffeur'),
         };
     }
 
