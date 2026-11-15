@@ -46,9 +46,10 @@ $scripts ??= [];
 <script type="application/json" id="textes-js"><?= json_encode(Langue::textesJs(), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?></script>
 </head>
 <body class="page-<?= e($page ?? 'autre') ?>" data-base="<?= e(base()) ?>" data-racine="<?= e(base() . Langue::prefixe()) ?>" data-csrf="<?= e(csrf()) ?>">
+<?php if (!empty($entree)) partiel('entree') ?>
 <?php partiel('icones') ?>
 <a class="evitement" href="#contenu"><?= e(t('Aller au contenu')) ?></a>
-<?php partiel('entete', ['page' => $page ?? '']) ?>
+<?php partiel('entete', ['page' => $page ?? '', 'entree' => !empty($entree)]) ?>
 <main id="contenu">
 <?= $contenu ?>
 </main>

@@ -468,6 +468,95 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { border-color
 @keyframes logo-filet { from { transform: scaleX(0); } }
 @keyframes logo-pose { from { opacity: 0; transform: translateY(40%); } }
 
+/*
+  Lever de rideau de l'accueil, une fois par visite, 2,45 s, passable d'un geste.
+  0 à 1 160 ms : le logo se trace. 800 à 1 500 ms : le Land Cruiser entre et freine sous le logo.
+  1 700 à 2 450 ms : il repart en accélérant et le rideau le suit ; la page apparaît derrière lui.
+  Le rideau et la voiture partagent la même courbe et la même durée : le bord du rideau ne
+  dépasse jamais l'arrière de la voiture. La scène recule d'autant que le rideau avance, si bien
+  que le logo reste immobile pendant qu'il s'efface. Tout se joue en transform.
+  Le sens est physique, de gauche à droite, dans toutes les langues.
+*/
+.entree {
+  --logo: min(480px, 68vw, 70vh);
+  --voiture: min(760px, 92vw, 100vh);
+  --repart: 750ms cubic-bezier(0.5, 0, 0.85, 0.4) 1700ms forwards;
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  overflow: hidden;
+  animation: entree-fin 1ms linear 2450ms forwards;
+}
+.entree-rideau {
+  position: absolute;
+  inset: 0 0 0 -4px;
+  overflow: hidden;
+  background: var(--encre);
+  border-left: 4px solid var(--or);
+  animation: entree-rideau var(--repart);
+}
+.entree-scene,
+.entree-route {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  /* La photo 4:3 a 30 % de vide en haut et 10 % en bas : la rangée ne compte que la voiture. */
+  grid-template-rows: 1fr calc(var(--logo) * 0.325) var(--e8) calc(var(--voiture) * 0.45) 1fr;
+  justify-items: center;
+}
+.entree-scene { animation: entree-contre var(--repart); }
+.entree-route { pointer-events: none; }
+.entree-logo { grid-row: 2; width: var(--logo); --logo-encre: #ffffff; }
+.entree-logo .logo-svg { width: 100%; height: auto; }
+.entree-voiture {
+  grid-row: 4;
+  align-self: start;
+  width: var(--voiture);
+  margin-top: calc(var(--voiture) * -0.225);
+  animation: entree-arrive 700ms var(--sortie) 800ms both, entree-repart var(--repart);
+}
+/* Le nez plonge au freinage puis se relève à l'accélération, pivot sur l'essieu arrière. */
+.entree-voiture img {
+  width: 100%;
+  transform-origin: 25% 85%;
+  animation: entree-tangage 700ms ease-in-out 1350ms both;
+}
+.entree-passer {
+  position: absolute;
+  inset-block-end: max(var(--e7), env(safe-area-inset-bottom));
+  inset-inline-end: var(--e7);
+  min-height: 36px;
+  padding: 0 var(--e5);
+  border: 1px solid rgb(255 255 255 / 0.32);
+  border-radius: var(--r-controle);
+  background: transparent;
+  color: #ffffff;
+  font-size: var(--t-14);
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 200ms ease;
+  /* Plus utile une fois le rideau parti : il s'efface quand la voiture redémarre. */
+  animation: entree-efface 150ms ease 1700ms forwards;
+}
+.entree-passer:hover { border-color: #ffffff; }
+.entree-passer:focus-visible { box-shadow: 0 0 0 1px var(--encre), 0 0 0 3px #ffffff; }
+.entree-passee { opacity: 0; transition: opacity 200ms var(--sortie); }
+@keyframes entree-arrive { from { transform: translateX(calc(-50vw - 50%)); } }
+@keyframes entree-repart { from { transform: translateX(0); } to { transform: translateX(calc(50vw + 50%)); } }
+@keyframes entree-rideau { to { transform: translateX(calc(100vw + 4px)); } }
+@keyframes entree-contre { to { transform: translateX(calc(-100vw - 4px)); } }
+@keyframes entree-tangage {
+  0% { transform: none; }
+  21% { transform: rotate(0.8deg); }
+  36% { transform: rotate(-0.15deg); }
+  50% { transform: none; }
+  71%, 100% { transform: rotate(-0.5deg); }
+}
+@keyframes entree-fin { to { visibility: hidden; } }
+@keyframes entree-efface { to { opacity: 0; visibility: hidden; } }
+@media (prefers-reduced-motion: reduce) { .entree { display: none; } }
+@media print { .entree { display: none; } }
+
 .nav-principale { display: flex; gap: var(--e2); margin-inline-end: auto; }
 .nav-principale a {
   padding: var(--e4) var(--e5);

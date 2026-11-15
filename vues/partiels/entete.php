@@ -9,7 +9,8 @@ $liens = [
 ];
 $numero = config('contact.telephone_affiche');
 // Le tracé du logo se joue sur la première page vue de la visite, pas à chaque clic.
-$logoAnime = empty($_SESSION['logo_vu']);
+// Sur l'accueil, le lever de rideau le joue déjà en grand.
+$logoAnime = empty($_SESSION['logo_vu']) && empty($entree);
 $_SESSION['logo_vu'] = true;
 ?>
 <header class="entete">
