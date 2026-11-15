@@ -72,6 +72,7 @@
   --r-surface: 16px;
   --r-page: 24px;
   --r-pilule: 999px;
+  --logo-encre: var(--encre);
 
   --largeur: 1280px;
   --gouttiere: var(--e7);
@@ -107,6 +108,7 @@
     --danger-fond: #3a1620;
     --info-fond: #18204a;
     --ombre: rgb(0 0 0 / 0.5);
+    --logo-encre: #ffffff;
     color-scheme: dark;
   }
 }
@@ -134,6 +136,7 @@
   --danger-fond: #3a1620;
   --info-fond: #18204a;
   --ombre: rgb(0 0 0 / 0.5);
+  --logo-encre: #ffffff;
   color-scheme: dark;
 }
 
@@ -402,14 +405,40 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { border-color
   height: var(--entete);
 }
 .logo { display: block; flex: none; border-radius: var(--r-enfant); }
-.logo img { height: 36px; width: auto; }
-.logo-sombre { display: none !important; }
-:root[data-theme='sombre'] .logo-clair { display: none !important; }
-:root[data-theme='sombre'] .logo-sombre { display: block !important; }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='clair']) .logo-clair { display: none !important; }
-  :root:not([data-theme='clair']) .logo-sombre { display: block !important; }
-}
+
+/* Logo vectoriel : bleu nuit et or en clair, blanc et or en sombre. */
+.logo-svg { display: block; width: auto; height: 36px; overflow: visible; }
+.logo-encre { fill: var(--logo-encre); }
+.logo-or { fill: var(--or); }
+.logo-trace { fill: none; stroke: #ffffff; stroke-dasharray: 1 1; }
+.logo-lettre, .logo-filet, .logo-drive path { transform-box: fill-box; }
+.logo-filet-g { transform-origin: right center; }
+.logo-filet-d { transform-origin: left center; }
+
+/*
+  Arrivée du logo, une fois par visite : le Y se trace de haut en bas comme une route,
+  les cinq lettres montent, les filets s'ouvrent et DRIVE se pose. 1,16 s au total.
+*/
+.logo-arrivee .logo-trace { animation: logo-trace 380ms var(--sortie) both; }
+.logo-arrivee .logo-trace-2 { animation-duration: 540ms; animation-delay: 120ms; }
+.logo-arrivee .logo-trace-3 { animation-duration: 420ms; animation-delay: 420ms; }
+.logo-arrivee .logo-lettre { animation: logo-monte 500ms var(--sortie) both; }
+.logo-arrivee .logo-lettre:nth-child(1) { animation-delay: 200ms; }
+.logo-arrivee .logo-lettre:nth-child(2) { animation-delay: 250ms; }
+.logo-arrivee .logo-lettre:nth-child(3) { animation-delay: 300ms; }
+.logo-arrivee .logo-lettre:nth-child(4) { animation-delay: 350ms; }
+.logo-arrivee .logo-lettre:nth-child(5) { animation-delay: 400ms; }
+.logo-arrivee .logo-filet { animation: logo-filet 400ms var(--sortie) 640ms both; }
+.logo-arrivee .logo-drive path { animation: logo-pose 300ms var(--sortie) both; }
+.logo-arrivee .logo-drive path:nth-child(1) { animation-delay: 700ms; }
+.logo-arrivee .logo-drive path:nth-child(2) { animation-delay: 740ms; }
+.logo-arrivee .logo-drive path:nth-child(3) { animation-delay: 780ms; }
+.logo-arrivee .logo-drive path:nth-child(4) { animation-delay: 820ms; }
+.logo-arrivee .logo-drive path:nth-child(5) { animation-delay: 860ms; }
+@keyframes logo-trace { from { stroke-dashoffset: 1; } }
+@keyframes logo-monte { from { transform: translateY(105%); } }
+@keyframes logo-filet { from { transform: scaleX(0); } }
+@keyframes logo-pose { from { opacity: 0; transform: translateY(40%); } }
 
 .nav-principale { display: flex; gap: var(--e2); margin-right: auto; }
 .nav-principale a {
@@ -1273,7 +1302,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { border-color
 .pied a:hover { text-decoration: underline; }
 .pied-grille { display: grid; grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr)); gap: var(--e9); }
 .pied-marque { display: grid; gap: var(--e6); align-content: start; max-width: 340px; }
-.pied-marque img { height: 48px; width: auto; }
+.pied-marque .logo-svg { height: 48px; --logo-encre: #ffffff; }
 .pied-marque p { font-size: var(--t-14); line-height: 20px; }
 .pied-titre { margin-bottom: var(--e5); color: #ffffff; font-size: var(--t-16); }
 .pied-liste { list-style: none; display: grid; gap: var(--e4); font-size: var(--t-14); line-height: 20px; }

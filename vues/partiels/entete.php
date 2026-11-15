@@ -6,12 +6,14 @@ $liens = [
     'questions' => [url('/') . '#questions', 'Questions'],
 ];
 $numero = config('contact.telephone_affiche');
+// Le tracé du logo se joue sur la première page vue de la visite, pas à chaque clic.
+$logoAnime = empty($_SESSION['logo_vu']);
+$_SESSION['logo_vu'] = true;
 ?>
 <header class="entete">
   <div class="conteneur entete-contenu">
     <a class="logo" href="<?= url('/') ?>" aria-label="Yamoo Drive, accueil">
-      <img class="logo-clair" src="<?= asset('img/marque/logo-clair.png') ?>" alt="" width="111" height="36">
-      <img class="logo-sombre" src="<?= asset('img/marque/logo-sombre.png') ?>" alt="" width="111" height="36">
+      <?php partiel('logo', ['id' => 'logo-entete', 'anime' => $logoAnime]) ?>
     </a>
     <nav class="nav-principale" aria-label="Navigation principale">
       <?php foreach ($liens as $cle => [$href, $libelle]): ?>
