@@ -20,7 +20,7 @@ final class Carte
             'detail' => $v['type'] . ' · ' . $v['places_texte'],
             'prix' => fcfa($prix),
             'prix_brut' => $prix,
-            'unite' => 'par jour, ' . ($formule === 'sans' ? 'sans chauffeur' : 'avec chauffeur'),
+            'unite' => t('par jour') . ', ' . ($formule === 'sans' ? t('sans chauffeur') : t('avec chauffeur')),
             'disponible' => true,
             'etat' => null,
             'lien' => url('/vehicules/' . $v['slug'], ['formule' => $formule]),
@@ -32,11 +32,11 @@ final class Carte
             $copie->formule = $formule;
             $devis = Devis::calcule($copie);
             $carte['prix'] = fcfa($devis['total']);
-            $carte['unite'] = 'pour ' . pluriel($devis['jours'], 'jour', 'jours');
+            $carte['unite'] = t('pour {duree}', ['duree' => nb_jours($devis['jours'])]);
             $carte['disponible'] = Disponibilite::estLibre($v, $d->debut, $d->fin);
             if (!$carte['disponible']) {
                 $libre = Disponibilite::libreA($v, $d->debut, $d->fin);
-                $carte['etat'] = $libre ? 'Réservé jusqu’au ' . date_fr($libre, 'd MMM') . ' à ' . heure($libre) : 'Réservé à ces dates';
+                $carte['etat'] = $libre ? t('Réservé jusqu’au {date}, {heure}', ['date' => date_texte($libre, 'dMMM'), 'heure' => heure($libre)]) : t('Réservé à ces dates');
             }
             $carte['lien'] = url('/vehicules/' . $v['slug'], $copie->versParams());
         }

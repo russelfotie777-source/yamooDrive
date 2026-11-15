@@ -13,12 +13,12 @@ final class Assistant
     {
         $historique = self::nettoie($brut);
         if (!$historique || end($historique)['role'] !== 'user') {
-            return ['texte' => 'Posez votre question, je vous réponds.', 'cartes' => [], 'action' => null];
+            return ['texte' => t('Posez votre question, je vous réponds.'), 'cartes' => [], 'action' => null];
         }
 
         $_SESSION['assistant'] = ($_SESSION['assistant'] ?? 0) + 1;
         if ($_SESSION['assistant'] > config('assistant.messages_par_session')) {
-            return ['texte' => 'Vous avez posé beaucoup de questions. Pour la suite, l’équipe vous répond sur WhatsApp au ' . config('contact.telephone_affiche') . '.', 'cartes' => [], 'action' => null];
+            return ['texte' => t('Vous avez posé beaucoup de questions. Pour la suite, l’équipe vous répond sur WhatsApp au {numero}.', ['numero' => config('contact.telephone_affiche')]), 'cartes' => [], 'action' => null];
         }
 
         $cle = env('ANTHROPIC_API_KEY');
@@ -34,7 +34,9 @@ final class Assistant
 
     private static function contexte(): string
     {
-        return 'Nous sommes le ' . date_fr(maintenant(), 'EEEE d MMMM y') . ', il est ' . maintenant()->format('H:i') . ' à Douala.';
+        // Toujours en français pour le modèle, avec la langue dans laquelle répondre.
+        return 'Nous sommes le ' . maintenant()->format('Y-m-d') . ' (' . maintenant()->format('l') . '), il est ' . maintenant()->format('H:i') . ' à Douala. '
+            . 'Langue du client : ' . \Yamoo\Langue::info('nom') . ' (' . \Yamoo\Langue::$code . '). Réponds dans cette langue.';
     }
 
     private static function nettoie(mixed $brut): array
