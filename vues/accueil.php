@@ -20,7 +20,8 @@ $services = [
     ['route', 'Voyages interurbains', 'Kribi, Limbé, Yaoundé, l’Ouest : partez sur la route en SUV récent, avec ou sans chauffeur.', 'Bonjour Yamoo Drive, je prépare un voyage hors de la ville.'],
 ];
 ?>
-<section class="hero conteneur signature-en-cours" aria-labelledby="hero-titre">
+<?php // Après le lever de rideau, le titre se pose quand le rideau commence à s'ouvrir. ?>
+<section class="hero conteneur<?= empty($entree) ? ' signature-en-cours' : '' ?>"<?= empty($entree) ? '' : ' data-signature-differee' ?> aria-labelledby="hero-titre">
   <div class="hero-texte">
     <h1 id="hero-titre" class="hero-titre" data-signature>
       <?php foreach ($mots as $mot): ?><span class="mot"><span><?= e($mot) ?></span></span> <?php endforeach ?>
