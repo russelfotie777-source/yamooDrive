@@ -177,7 +177,7 @@ final class Admin
             mb_substr(trim((string) ($_POST['motif'] ?? '')), 0, 120) ?: null,
             maintenant()->format('Y-m-d H:i:s'),
         ]);
-        Pages::flash($v['court'] . ' bloqué du ' . date_fr($debut, 'd MMM') . ' au ' . date_fr($fin, 'd MMM') . '.');
+        Pages::flash($v['court'] . ' bloqué du ' . date_texte($debut, 'dMMM') . ' au ' . date_texte($fin, 'dMMM') . '.');
         redirige(url('/equipe/flotte'));
     }
 }

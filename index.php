@@ -9,6 +9,7 @@ if (PHP_SAPI === 'cli-server' && is_file($_SERVER['DOCUMENT_ROOT'] . parse_url($
 require __DIR__ . '/vendor/autoload.php';
 
 use Yamoo\Admin;
+use Yamoo\Langue;
 use Yamoo\Pages;
 
 date_default_timezone_set(config('fuseau'));
@@ -24,6 +25,11 @@ header("Content-Security-Policy: default-src 'self'; img-src 'self' data:; style
 
 $methode = $_SERVER['REQUEST_METHOD'];
 $chemin = '/' . trim(substr(rawurldecode(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)), strlen(base())), '/');
+// Le français vit à la racine : /fr/… renvoie vers la même page sans préfixe.
+if (preg_match('#^/fr(/.*)?$#', $chemin, $m)) {
+    redirige(base() . ($m[1] ?? '/') . (($_SERVER['QUERY_STRING'] ?? '') !== '' ? '?' . $_SERVER['QUERY_STRING'] : ''), 301);
+}
+$chemin = Langue::depuisChemin($chemin);
 
 $routes = [
     ['GET', '#^/$#', [Pages::class, 'accueil']],
@@ -66,6 +72,6 @@ foreach ($routes as [$verbe, $motif, $action]) {
 
 http_response_code($trouvee ? 405 : 404);
 vue('erreur', [
-    'titre' => 'Page introuvable',
-    'message' => 'Cette adresse ne mène nulle part. Revenez à l’accueil pour choisir un véhicule.',
+    'titre' => t('Page introuvable'),
+    'message' => t('Cette adresse ne mène nulle part. Revenez à l’accueil pour choisir un véhicule.'),
 ]);

@@ -21,6 +21,7 @@ final class Base
             if ($nouvelle || !self::table('reservations')) {
                 self::cree();
             }
+            self::migre();
         }
         return self::$pdo;
     }
@@ -30,6 +31,15 @@ final class Base
         $q = self::$pdo->prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?");
         $q->execute([$nom]);
         return (bool) $q->fetchColumn();
+    }
+
+    // Colonnes ajoutées après la première version : une base existante les reçoit au passage.
+    private static function migre(): void
+    {
+        $colonnes = array_column(self::$pdo->query('PRAGMA table_info(reservations)')->fetchAll(), 'name');
+        if (!in_array('langue', $colonnes, true)) {
+            self::$pdo->exec("ALTER TABLE reservations ADD COLUMN langue TEXT NOT NULL DEFAULT 'fr'");
+        }
     }
 
     private static function cree(): void

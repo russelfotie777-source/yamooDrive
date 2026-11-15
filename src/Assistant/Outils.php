@@ -161,9 +161,9 @@ final class Outils
         $this->cartes = [Carte::depuis($d->vehicule, $d->formule, $d)];
         $resultat = [
             'vehicule' => $d->vehicule['nom'],
-            'formule' => $d->formule === 'sans' ? 'sans chauffeur' : 'avec chauffeur',
-            'depart' => config("lieux.{$d->lieuDepart}.nom") . ', ' . $d->debut->format('Y-m-d H:i'),
-            'retour' => config("lieux.{$d->lieuRetour}.nom") . ', ' . $d->fin->format('Y-m-d H:i'),
+            'formule' => $d->formule === 'sans' ? t('sans chauffeur') : t('avec chauffeur'),
+            'depart' => lieu($d->lieuDepart) . ', ' . $d->debut->format('Y-m-d H:i'),
+            'retour' => lieu($d->lieuRetour) . ', ' . $d->fin->format('Y-m-d H:i'),
             'jours' => $devis['jours'],
             'prix_par_jour' => fcfa($devis['prix_jour']),
             'frais_rapatriement' => fcfa($devis['frais_rapatriement']),
@@ -176,7 +176,7 @@ final class Outils
             $resultat['libre_a_partir_de'] = $a->format('Y-m-d H:i');
         }
         if ($preparer && $libre) {
-            $this->action = ['libelle' => 'Continuer la réservation', 'lien' => url('/reserver/' . $d->vehicule['slug'], $d->versParams())];
+            $this->action = ['libelle' => t('Continuer la réservation'), 'lien' => url('/reserver/' . $d->vehicule['slug'], $d->versParams())];
             $resultat['bouton_affiche'] = true;
         }
         return $resultat;

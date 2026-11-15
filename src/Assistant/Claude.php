@@ -46,7 +46,7 @@ final class Claude
             $arret = $reponse->stopReason instanceof \BackedEnum ? $reponse->stopReason->value : (string) $reponse->stopReason;
 
             if ($arret === 'refusal') {
-                return ['texte' => 'Je ne peux pas répondre à cette demande. L’équipe Yamoo Drive vous répond sur WhatsApp.', 'cartes' => [], 'action' => null];
+                return ['texte' => t('Je ne peux pas répondre à cette demande. L’équipe Yamoo Drive vous répond sur WhatsApp.'), 'cartes' => [], 'action' => null];
             }
             if ($arret !== 'tool_use') {
                 return ['texte' => self::texte($reponse->content), 'cartes' => $outils->cartes, 'action' => $outils->action];
@@ -67,7 +67,7 @@ final class Claude
             $messages[] = ['role' => 'assistant', 'content' => $reponse->content];
             $messages[] = ['role' => 'user', 'content' => $resultats];
         }
-        return ['texte' => 'Je n’ai pas réussi à finir la recherche. Reformulez votre question ou écrivez-nous sur WhatsApp.', 'cartes' => $outils->cartes, 'action' => $outils->action];
+        return ['texte' => t('Je n’ai pas réussi à finir la recherche. Reformulez votre question ou écrivez-nous sur WhatsApp.'), 'cartes' => $outils->cartes, 'action' => $outils->action];
     }
 
     private static function texte(array $contenu): string

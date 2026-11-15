@@ -1,6 +1,6 @@
 # Yamoo Drive
 
-Site de réservation de Yamoo Drive : flotte, disponibilités, prix exact, réservation avec ou sans chauffeur, paiement MTN Mobile Money et Orange Money, assistant, espace équipe.
+Site de réservation de Yamoo Drive en six langues : flotte, disponibilités, prix exact, réservation avec ou sans chauffeur, paiement MTN Mobile Money et Orange Money, assistant, espace équipe.
 
 PHP 8.2, SQLite, sans framework. Aucune dépendance côté navigateur.
 
@@ -13,6 +13,14 @@ php -S 127.0.0.1:8080 index.php
 ```
 
 Sous XAMPP, le dossier fonctionne tel quel à l’adresse `http://localhost/Yamoodrive/` (le fichier `.htaccess` envoie tout vers `index.php` et bloque `config/`, `src/`, `vues/`, `stockage/` et `.env`). La base `stockage/yamoo.sqlite` se crée au premier appel ; `stockage/` doit rester inscriptible par Apache.
+
+## Langues
+
+Six langues : français à la racine, anglais `/en/`, espagnol `/es/`, allemand `/de/`, chinois simplifié `/zh/`, arabe `/ar/` (mise en page de droite à gauche). Le choix se fait dans l’en-tête et garde la page et ses paramètres.
+
+Les textes sont écrits en français dans le code (`t('…')`) et traduits dans `langues/textes.php`, une ligne par texte avec ses cinq traductions. Les nombres, les dates et les pluriels suivent les règles de chaque langue (ICU). Pour repérer un texte oublié, lancer le serveur avec `RELEVE_TRADUCTIONS=/tmp/releve.jsonl` et parcourir le site : chaque texte sans traduction y est noté.
+
+Les traductions chinoises et arabes gagneraient à être relues par une personne de langue maternelle avant la mise en ligne. L’espace équipe reste en français ; il indique la langue dans laquelle chaque client a réservé.
 
 ## Réglages (`.env`)
 
@@ -48,6 +56,7 @@ index.php            routes
 config/              réglages, flotte
 src/                 Demande, Devis, Disponibilite, Reservations, Conducteur, Paiement/, Assistant/, Pages, Admin
 vues/                gabarits PHP
-assets/              CSS, JS, images, police Figtree (OFL)
+langues/             traductions (anglais, espagnol, allemand, chinois, arabe)
+assets/              CSS, JS, images, polices Figtree et Noto Sans Arabic (OFL)
 stockage/            base SQLite et pièces des conducteurs (hors du web)
 ```

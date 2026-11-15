@@ -9,7 +9,7 @@
   const form = panneau.querySelector('[data-assistant-form]');
   const zone = form.querySelector('textarea');
   const envoyer = form.querySelector('button[type="submit"]');
-  const base = window.Yamoo?.base ?? '';
+  const { racine, t } = window.Yamoo;
   const CLE = 'yamoo-assistant';
   let historique = [];
   let declencheur = lanceur;
@@ -87,11 +87,11 @@
     ajuste();
     const attente = document.createElement('div');
     attente.className = 'bulle bulle-assistant bulle-attente';
-    attente.textContent = 'Je regarde…';
+    attente.textContent = t('Je regarde…');
     fil.append(attente);
     fil.scrollTop = fil.scrollHeight;
     try {
-      const r = await fetch(`${base}/api/assistant`, {
+      const r = await fetch(`${racine}/api/assistant`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF': document.body.dataset.csrf },
         body: JSON.stringify({ messages: historique.map(({ role, texte }) => ({ role, texte })) }),
@@ -99,7 +99,7 @@
       const d = await r.json();
       historique.push({ role: 'assistant', texte: d.texte || '', cartes: d.cartes || [], action: d.action || null });
     } catch {
-      historique.push({ role: 'assistant', texte: 'La réponse n’est pas arrivée. Vérifiez votre connexion puis réessayez, ou écrivez-nous sur WhatsApp.' });
+      historique.push({ role: 'assistant', texte: t('La réponse n’est pas arrivée. Vérifiez votre connexion puis réessayez, ou écrivez-nous sur WhatsApp.') });
     }
     attente.remove();
     sauve();

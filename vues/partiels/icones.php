@@ -32,5 +32,6 @@
   <symbol id="i-message" viewBox="0 0 24 24"><path d="M20.5 12a8.5 8.5 0 0 1-12.1 7.7L3.5 20.5l1-4.4A8.5 8.5 0 1 1 20.5 12Z"/></symbol>
   <symbol id="i-sortie" viewBox="0 0 24 24"><path d="M14 4.5h4a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-4M9.5 16.5 5 12l4.5-4.5M5 12h10.5"/></symbol>
   <symbol id="i-grille" viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.25"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.25"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.25"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.25"/></symbol>
+  <symbol id="i-langue" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.3 2.4 3.5 5.2 3.5 8.5s-1.2 6.1-3.5 8.5c-2.3-2.4-3.5-5.2-3.5-8.5s1.2-6.1 3.5-8.5Z"/></symbol>
   <symbol id="i-lien-externe" viewBox="0 0 24 24"><path d="M13.5 4.5h6v6M19.5 4.5 11 13M17 14v4a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 5 18V8.5A1.5 1.5 0 0 1 6.5 7h4"/></symbol>
 </svg>

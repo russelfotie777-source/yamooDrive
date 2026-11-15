@@ -1,7 +1,12 @@
 // Comportements communs : thème, menu, filtres, assistant, copie, moment d'arrivée de l'accueil.
 (() => {
-  const racine = document.documentElement;
+  const html = document.documentElement;
   const base = document.body.dataset.base || '';
+  const racine = document.body.dataset.racine || base;
+  const textes = JSON.parse(document.getElementById('textes-js')?.textContent || '{}');
+  // Texte traduit envoyé par la page ; {nom} est remplacé par la valeur donnée.
+  const t = (cle, valeurs = {}) => (textes[cle] ?? cle).replace(/\{(\w+)\}/g, (_, k) => valeurs[k] ?? '');
+  const intl = html.dataset.intl || 'fr-FR';
   const sombreSysteme = matchMedia('(prefers-color-scheme: dark)');
 
   const charge = (fichier) => new Promise((ok, ko) => {
@@ -14,16 +19,16 @@
     s.onerror = ko;
     document.head.append(s);
   });
-  window.Yamoo = { base, charge };
+  window.Yamoo = { base, racine, charge, t, intl };
 
   // Thème
-  const estSombre = () => racine.dataset.theme ? racine.dataset.theme === 'sombre' : sombreSysteme.matches;
+  const estSombre = () => html.dataset.theme ? html.dataset.theme === 'sombre' : sombreSysteme.matches;
   const libelleTheme = () => document.querySelectorAll('[data-bascule-theme]').forEach((b) => {
-    b.setAttribute('aria-label', estSombre() ? 'Passer en mode clair' : 'Passer en mode sombre');
+    b.setAttribute('aria-label', estSombre() ? t('Passer en mode clair') : t('Passer en mode sombre'));
   });
   document.querySelectorAll('[data-bascule-theme]').forEach((b) => b.addEventListener('click', () => {
     const suivant = estSombre() ? 'clair' : 'sombre';
-    racine.dataset.theme = suivant;
+    html.dataset.theme = suivant;
     try { localStorage.setItem('yamoo-theme', suivant); } catch {}
     libelleTheme();
   }));
@@ -42,6 +47,37 @@
     menu.addEventListener('click', (e) => { if (e.target.closest('a')) ferme(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !menu.hidden) { ferme(); menuBouton.focus(); } });
   }
+
+  // Choix de la langue : menu au clavier (flèches qui bouclent, Début, Fin, Échap).
+  document.querySelectorAll('[data-langues]').forEach((bloc) => {
+    const bouton = bloc.querySelector('[data-langues-bouton]');
+    const menu = bloc.querySelector('[data-langues-menu]');
+    const liens = [...menu.querySelectorAll('a')];
+    const ouvert = () => bouton.getAttribute('aria-expanded') === 'true';
+    const ouvre = (focus) => {
+      bouton.setAttribute('aria-expanded', 'true');
+      menu.classList.add('ouvert');
+      (focus === 'fin' ? liens[liens.length - 1] : menu.querySelector('[aria-current]') || liens[0]).focus();
+    };
+    const ferme = (rendFocus) => {
+      bouton.setAttribute('aria-expanded', 'false');
+      menu.classList.remove('ouvert');
+      if (rendFocus) bouton.focus();
+    };
+    bouton.addEventListener('click', () => (ouvert() ? ferme(false) : ouvre()));
+    bouton.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown') { e.preventDefault(); ouvre(); }
+      if (e.key === 'ArrowUp') { e.preventDefault(); ouvre('fin'); }
+    });
+    menu.addEventListener('keydown', (e) => {
+      const i = liens.indexOf(document.activeElement);
+      const cible = { ArrowDown: liens[(i + 1) % liens.length], ArrowUp: liens[(i - 1 + liens.length) % liens.length], Home: liens[0], End: liens[liens.length - 1] }[e.key];
+      if (cible) { e.preventDefault(); cible.focus(); }
+      if (e.key === 'Escape') { e.preventDefault(); ferme(true); }
+      if (e.key === 'Tab') ferme(false);
+    });
+    document.addEventListener('pointerdown', (e) => { if (ouvert() && !bloc.contains(e.target)) ferme(false); });
+  });
 
   // Filtres de catégorie : sans rechargement, l'adresse suit le filtre.
   document.querySelectorAll('[data-filtres]').forEach((groupe) => {
@@ -80,9 +116,9 @@
     const libelle = b.querySelector('[data-copier-libelle]');
     try {
       await navigator.clipboard.writeText(b.dataset.copier);
-      if (libelle) { const avant = libelle.textContent; libelle.textContent = 'Lien copié'; setTimeout(() => { libelle.textContent = avant; }, 2000); }
+      if (libelle) { const avant = libelle.textContent; libelle.textContent = t('Lien copié'); setTimeout(() => { libelle.textContent = avant; }, 2000); }
     } catch {
-      prompt('Copiez ce lien :', b.dataset.copier);
+      prompt(t('Copiez ce lien :'), b.dataset.copier);
     }
   }));
 

@@ -31,16 +31,16 @@ final class Conducteur
         $age = config('regles.age_minimum');
         $anciennete = config('regles.anciennete_permis_ans');
         if (!$naissance) {
-            $erreurs['naissance'] = 'Indiquez la date de naissance du conducteur.';
+            $erreurs['naissance'] = t('Indiquez la date de naissance du conducteur.');
         } elseif ($naissance->modify("+$age years") > $depart) {
-            $erreurs['naissance'] = "Le conducteur doit avoir au moins $age ans le jour du départ. Choisissez la formule avec chauffeur.";
+            $erreurs['naissance'] = t('Le conducteur doit avoir au moins {age} ans le jour du départ. Choisissez la formule avec chauffeur.', ['age' => $age]);
         }
         if (!$permis) {
-            $erreurs['permis'] = 'Indiquez la date d’obtention du permis.';
+            $erreurs['permis'] = t('Indiquez la date d’obtention du permis.');
         } elseif ($permis > maintenant()) {
-            $erreurs['permis'] = 'La date d’obtention du permis est dans le futur. Vérifiez-la.';
+            $erreurs['permis'] = t('La date d’obtention du permis est dans le futur. Vérifiez-la.');
         } elseif ($permis->modify("+$anciennete years") > $depart) {
-            $erreurs['permis'] = "Le permis doit avoir au moins $anciennete ans le jour du départ. Choisissez la formule avec chauffeur.";
+            $erreurs['permis'] = t('Le permis doit avoir au moins {ans} ans le jour du départ. Choisissez la formule avec chauffeur.', ['ans' => $anciennete]);
         }
         return $erreurs;
     }
@@ -53,16 +53,16 @@ final class Conducteur
             $liste = self::normalise($fichiers[$piece] ?? null);
             $cle = 'piece_' . $piece;
             if (!$liste) {
-                $erreurs[$cle] = self::PIECES[$piece] . ' : ajoutez une photo ou un PDF.';
+                $erreurs[$cle] = t('{piece} : ajoutez une photo ou un PDF.', ['piece' => t(self::PIECES[$piece])]);
                 continue;
             }
             foreach ($liste as $f) {
                 if ($f['error'] !== UPLOAD_ERR_OK) {
-                    $erreurs[$cle] = self::PIECES[$piece] . ' : le fichier n’a pas été reçu. Réessayez avec une photo plus légère.';
+                    $erreurs[$cle] = t('{piece} : le fichier n’a pas été reçu. Réessayez avec une photo plus légère.', ['piece' => t(self::PIECES[$piece])]);
                 } elseif ($f['size'] > self::TAILLE_MAX) {
-                    $erreurs[$cle] = self::PIECES[$piece] . ' : chaque fichier doit faire moins de 10 Mo.';
+                    $erreurs[$cle] = t('{piece} : chaque fichier doit faire moins de 10 Mo.', ['piece' => t(self::PIECES[$piece])]);
                 } elseif (!isset(self::TYPES[(new \finfo(FILEINFO_MIME_TYPE))->file($f['tmp_name'])])) {
-                    $erreurs[$cle] = self::PIECES[$piece] . ' : envoyez une photo (JPG, PNG, WebP, HEIC) ou un PDF.';
+                    $erreurs[$cle] = t('{piece} : envoyez une photo (JPG, PNG, WebP, HEIC) ou un PDF.', ['piece' => t(self::PIECES[$piece])]);
                 }
             }
         }

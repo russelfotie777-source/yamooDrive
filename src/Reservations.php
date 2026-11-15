@@ -45,6 +45,7 @@ final class Reservations
             'paiement_operateur' => $extra['operateur'] ?? null,
             'paiement_numero' => $extra['numero'] ?? null,
             'statut' => $mobile ? 'attente_paiement' : 'demande',
+            'langue' => Langue::$code,
             'expire_le' => $mobile ? maintenant()->modify('+' . config('regles.attente_paiement_minutes') . ' minutes')->format('Y-m-d H:i') : null,
             'cree_le' => $maintenant,
             'maj_le' => $maintenant,
@@ -171,13 +172,14 @@ final class Reservations
     public static function messageWhatsapp(array $r): string
     {
         $v = $r['v'];
+        $quand = fn (string $d) => t('{date} à {heure}', ['date' => date_texte($d, 'EEEEdMMMM'), 'heure' => heure($d)]);
         $lignes = [
-            "Bonjour Yamoo Drive, voici ma réservation {$r['code']}.",
-            "Véhicule : {$v['nom']} (" . ($r['formule'] === 'sans' ? 'sans chauffeur' : 'avec chauffeur') . ')',
-            'Départ : ' . date_fr($r['debut'], 'EEEE d MMMM') . ' à ' . heure($r['debut']) . ', ' . config("lieux.{$r['lieu_depart']}.nom"),
-            'Retour : ' . date_fr($r['fin'], 'EEEE d MMMM') . ' à ' . heure($r['fin']) . ', ' . config("lieux.{$r['lieu_retour']}.nom"),
-            'Total : ' . fcfa($r['total']) . ($r['paiement_statut'] === 'paye' ? ' (payé)' : ' (à payer à la remise des clés)'),
-            "Nom : {$r['client_nom']}",
+            t('Bonjour Yamoo Drive, voici ma réservation {code}.', ['code' => $r['code']]),
+            t('Véhicule : {nom} ({formule})', ['nom' => $v['nom'], 'formule' => $r['formule'] === 'sans' ? t('sans chauffeur') : t('avec chauffeur')]),
+            t('Départ : {quand}, {lieu}', ['quand' => $quand($r['debut']), 'lieu' => lieu($r['lieu_depart'])]),
+            t('Retour : {quand}, {lieu}', ['quand' => $quand($r['fin']), 'lieu' => lieu($r['lieu_retour'])]),
+            t('Total : {montant}', ['montant' => fcfa($r['total'])]) . ' (' . ($r['paiement_statut'] === 'paye' ? t('payé') : t('à payer à la remise des clés')) . ')',
+            t('Nom : {nom}', ['nom' => $r['client_nom']]),
         ];
         return implode("\n", $lignes);
     }
