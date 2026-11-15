@@ -3,6 +3,7 @@
 (() => {
   const form = document.querySelector('[data-formulaire]');
   if (!form) return;
+  const { t } = window.Yamoo;
 
   const erreurs = form.querySelector('[data-erreurs]');
   if (erreurs) erreurs.focus();
@@ -17,7 +18,7 @@
   const majPaiement = () => {
     const mode = form.querySelector('[data-paiement]:checked')?.value || 'mobile';
     bascule('data-si-paiement', mode);
-    libelle.textContent = mode === 'remise' ? 'Envoyer ma demande' : `Payer ${form.dataset.total}`;
+    libelle.textContent = mode === 'remise' ? t('Envoyer ma demande') : t('Payer {total}', { total: form.dataset.total });
   };
   form.querySelectorAll('[data-paiement]').forEach((r) => r.addEventListener('change', majPaiement));
 
@@ -41,8 +42,8 @@
       sortie.hidden = false;
       sortie.className = ok ? 'champ-aide champ-ok' : 'champ-erreur';
       sortie.textContent = ok
-        ? (cle === 'naissance' ? 'Âge vérifié pour la date de départ.' : 'Ancienneté du permis vérifiée.')
-        : (cle === 'naissance' ? 'Le conducteur doit avoir au moins 23 ans le jour du départ.' : 'Le permis doit avoir au moins 2 ans le jour du départ.');
+        ? (cle === 'naissance' ? t('Âge vérifié pour la date de départ.') : t('Ancienneté du permis vérifiée.'))
+        : (cle === 'naissance' ? t('Le conducteur doit avoir au moins 23 ans le jour du départ.') : t('Le permis doit avoir au moins 2 ans le jour du départ.'));
       champ.setAttribute('aria-invalid', String(!ok));
     };
     champ.addEventListener('change', verifie);
@@ -56,7 +57,7 @@
     entree.addEventListener('change', () => {
       const n = entree.files.length;
       piece.classList.toggle('piece-ok', n > 0);
-      etat.textContent = n ? (n === 1 ? entree.files[0].name : `${n} fichiers ajoutés`) : aide;
+      etat.textContent = n ? (n === 1 ? entree.files[0].name : t('Fichiers ajoutés : {n}', { n })) : aide;
       if (n) entree.removeAttribute('aria-invalid');
     });
   });
@@ -74,7 +75,7 @@
   form.addEventListener('submit', () => {
     const bouton = form.querySelector('[data-envoyer]');
     bouton.setAttribute('aria-busy', 'true');
-    libelle.textContent = 'Envoi en cours…';
+    libelle.textContent = t('Envoi en cours…');
   });
   window.addEventListener('pageshow', () => {
     form.querySelector('[data-envoyer]')?.removeAttribute('aria-busy');

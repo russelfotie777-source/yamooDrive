@@ -6,11 +6,13 @@
   const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   const depuisIso = (s) => { const [a, m, j] = s.split('-').map(Number); return new Date(a, m - 1, j); };
   const ajoute = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
-  const fmtCourt = new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
-  const fmtLong = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-  const fmtMois = new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' });
-  const fmtJour = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long' });
-  const SEMAINE = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+  const { t, intl } = window.Yamoo;
+  const fmtCourt = new Intl.DateTimeFormat(intl, { weekday: 'short', day: 'numeric', month: 'short' });
+  const fmtLong = new Intl.DateTimeFormat(intl, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const fmtMois = new Intl.DateTimeFormat(intl, { month: 'long', year: 'numeric' });
+  const fmtJour = new Intl.DateTimeFormat(intl, { day: 'numeric', month: 'long' });
+  // Initiales des jours, du lundi au dimanche (le 5 janvier 2026 est un lundi).
+  const SEMAINE = Array.from({ length: 7 }, (_, i) => new Intl.DateTimeFormat(intl, { weekday: 'narrow' }).format(new Date(2026, 0, 5 + i)));
   const HEURES = [];
   for (let h = 6; h <= 22; h++) for (const m of ['00', '30']) if (!(h === 22 && m === '30')) HEURES.push(`${String(h).padStart(2, '0')}:${m}`);
   const etroit = matchMedia('(max-width: 760px)');
@@ -58,12 +60,12 @@
     affiche() {
       const texte = (jour, heure) => {
         if (!jour) return null;
-        const t = fmtCourt.format(depuisIso(jour)).replace('.', '');
-        return `${t.charAt(0).toUpperCase()}${t.slice(1)}, ${heure}`;
+        const date = fmtCourt.format(depuisIso(jour)).replace('.', '');
+        return `${date.charAt(0).toUpperCase()}${date.slice(1)}, ${heure}`;
       };
-      [[this.boutons[0], texte(this.debut, this.heureDebut)], [this.boutons[1], texte(this.fin, this.heureFin)]].forEach(([b, t]) => {
-        b.textContent = t || 'Ajouter une date';
-        b.classList.toggle('champ-date-vide', !t);
+      [[this.boutons[0], texte(this.debut, this.heureDebut)], [this.boutons[1], texte(this.fin, this.heureFin)]].forEach(([b, valeur]) => {
+        b.textContent = valeur || t('Ajouter une date');
+        b.classList.toggle('champ-date-vide', !valeur);
       });
     }
 
@@ -71,25 +73,25 @@
       const p = document.createElement('div');
       p.className = 'calendrier';
       p.setAttribute('role', 'dialog');
-      p.setAttribute('aria-label', 'Choisir les dates');
+      p.setAttribute('aria-label', t('Choisir les dates'));
       p.dataset.cache = '';
       p.hidden = true;
       p.innerHTML = `
         <div class="cal-entete">
           <p class="cal-resume" aria-live="polite"></p>
           <div class="cal-nav">
-            <button type="button" class="bouton-icone" data-mois="-1" aria-label="Mois précédent"><svg class="icone" aria-hidden="true"><use href="#i-chevron-gauche"></use></svg></button>
-            <button type="button" class="bouton-icone" data-mois="1" aria-label="Mois suivant"><svg class="icone" aria-hidden="true"><use href="#i-chevron-droite"></use></svg></button>
+            <button type="button" class="bouton-icone" data-mois="-1" aria-label="${t('Mois précédent')}"><svg class="icone icone-sens" aria-hidden="true"><use href="#i-chevron-gauche"></use></svg></button>
+            <button type="button" class="bouton-icone" data-mois="1" aria-label="${t('Mois suivant')}"><svg class="icone icone-sens" aria-hidden="true"><use href="#i-chevron-droite"></use></svg></button>
           </div>
         </div>
         <div class="cal-mois-liste"></div>
         <div class="cal-heures">
-          <div><label>Heure de départ<select data-heure="debut">${HEURES.map((h) => `<option>${h}</option>`).join('')}</select></label></div>
-          <div><label>Heure de retour<select data-heure="fin">${HEURES.map((h) => `<option>${h}</option>`).join('')}</select></label></div>
+          <div><label>${t('Heure de départ')}<select data-heure="debut">${HEURES.map((h) => `<option>${h}</option>`).join('')}</select></label></div>
+          <div><label>${t('Heure de retour')}<select data-heure="fin">${HEURES.map((h) => `<option>${h}</option>`).join('')}</select></label></div>
         </div>
         <div class="cal-pied">
-          <button type="button" class="bouton-lien" data-effacer>Effacer les dates</button>
-          <button type="button" class="bouton" data-valider>Valider</button>
+          <button type="button" class="bouton-lien" data-effacer>${t('Effacer les dates')}</button>
+          <button type="button" class="bouton" data-valider>${t('Valider')}</button>
         </div>`;
       p.querySelectorAll('[data-mois]').forEach((b) => b.addEventListener('click', () => { this.mois = new Date(this.mois.getFullYear(), this.mois.getMonth() + Number(b.dataset.mois), 1); this.rendre(); }));
       p.querySelector('[data-effacer]').addEventListener('click', () => { this.debut = this.fin = null; this.rendre(); });
@@ -111,12 +113,12 @@
         <div class="cal-entete">
           <p class="cal-resume" aria-live="polite"></p>
           <div class="cal-nav">
-            <button type="button" class="bouton-icone" data-mois="-1" aria-label="Mois précédent"><svg class="icone" aria-hidden="true"><use href="#i-chevron-gauche"></use></svg></button>
-            <button type="button" class="bouton-icone" data-mois="1" aria-label="Mois suivant"><svg class="icone" aria-hidden="true"><use href="#i-chevron-droite"></use></svg></button>
+            <button type="button" class="bouton-icone" data-mois="-1" aria-label="${t('Mois précédent')}"><svg class="icone icone-sens" aria-hidden="true"><use href="#i-chevron-gauche"></use></svg></button>
+            <button type="button" class="bouton-icone" data-mois="1" aria-label="${t('Mois suivant')}"><svg class="icone icone-sens" aria-hidden="true"><use href="#i-chevron-droite"></use></svg></button>
           </div>
         </div>
         <div class="cal-mois-liste"></div>
-        <div class="cal-pied"><button type="button" class="bouton-lien" data-effacer>Effacer les dates</button></div>`;
+        <div class="cal-pied"><button type="button" class="bouton-lien" data-effacer>${t('Effacer les dates')}</button></div>`;
       p.querySelectorAll('[data-mois]').forEach((b) => b.addEventListener('click', () => { this.mois = new Date(this.mois.getFullYear(), this.mois.getMonth() + Number(b.dataset.mois), 1); this.rendre(); }));
       p.querySelector('[data-effacer]').addEventListener('click', () => { this.debut = this.fin = null; this.valide(); });
       p.addEventListener('keydown', (e) => this.clavier(e));
@@ -179,8 +181,8 @@
     }
 
     resume() {
-      if (this.debut && this.fin) return `Du ${fmtJour.format(depuisIso(this.debut))} au ${fmtJour.format(depuisIso(this.fin))}`;
-      return this.debut ? 'Touchez le jour du retour' : 'Touchez le jour du départ';
+      if (this.debut && this.fin) return t('Du {debut} au {fin}', { debut: fmtJour.format(depuisIso(this.debut)), fin: fmtJour.format(depuisIso(this.fin)) });
+      return this.debut ? t('Touchez le jour du retour') : t('Touchez le jour du départ');
     }
 
     rendre() {
@@ -213,11 +215,11 @@
             const pris = this.pris.has(j);
             const passe = j < min;
             let etat = '';
-            if (pris) { b.classList.add('cal-pris'); etat = ', déjà réservé'; }
+            if (pris) { b.classList.add('cal-pris'); etat = `, ${t('déjà réservé')}`; }
             if (passe || pris) b.setAttribute('aria-disabled', 'true');
             if (j === aujourdhui) b.classList.add('cal-aujourdhui');
-            if (j === this.debut) { b.classList.add('cal-debut'); etat = ', départ'; if (this.fin) b.classList.add('cal-avec-fin'); }
-            if (j === this.fin) { b.classList.add('cal-fin'); etat = ', retour'; }
+            if (j === this.debut) { b.classList.add('cal-debut'); etat = `, ${t('départ')}`; if (this.fin) b.classList.add('cal-avec-fin'); }
+            if (j === this.fin) { b.classList.add('cal-fin'); etat = `, ${t('retour')}`; }
             if (this.debut && this.fin && j > this.debut && j < this.fin) b.classList.add('cal-entre');
             b.setAttribute('aria-label', fmtLong.format(d) + etat);
             b.setAttribute('aria-pressed', String(j === this.debut || j === this.fin));

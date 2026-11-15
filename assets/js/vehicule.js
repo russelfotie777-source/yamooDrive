@@ -2,7 +2,7 @@
 (() => {
   const form = document.querySelector('[data-resa]');
   if (!form) return;
-  const base = window.Yamoo?.base ?? '';
+  const { racine, t } = window.Yamoo;
   const $ = (s) => form.querySelector(s);
   const prixJour = $('[data-resa-prix-jour]');
   const bouton = $('[data-resa-bouton]');
@@ -37,24 +37,24 @@
       devis.hidden = true;
       rassure.hidden = true;
       bouton.disabled = false;
-      bouton.textContent = 'Choisir mes dates';
+      bouton.textContent = t('Choisir mes dates');
       montreMessage(null);
       barrePrix.textContent = tarifs[formule()];
-      barreUnite.textContent = 'par jour';
+      barreUnite.textContent = t('par jour');
       return;
     }
     controleur?.abort();
     controleur = new AbortController();
     form.setAttribute('aria-busy', 'true');
     try {
-      const r = await fetch(`${base}/api/devis?${params}`, { signal: controleur.signal, headers: { Accept: 'application/json' } });
+      const r = await fetch(`${racine}/api/devis?${params}`, { signal: controleur.signal, headers: { Accept: 'application/json' } });
       const d = await r.json();
       if (!d.ok) {
         devis.hidden = true;
         rassure.hidden = true;
         bouton.disabled = true;
-        bouton.textContent = 'Réserver';
-        montreMessage(Object.values(d.erreurs || {})[0] || 'Vérifiez les dates.');
+        bouton.textContent = t('Réserver');
+        montreMessage(Object.values(d.erreurs || {})[0] || t('Vérifiez les dates.'));
         return;
       }
       $('[data-resa-lignes]').innerHTML = d.lignes.map(([a, b]) => `<div><dt>${a}</dt><dd>${b}</dd></div>`).join('');
@@ -64,16 +64,16 @@
       annulation.querySelector('span').textContent = d.annulation || '';
       const caution = $('[data-resa-caution]');
       caution.hidden = !d.caution;
-      caution.querySelector('span').textContent = d.caution ? `Caution remboursable de ${d.caution} à la remise des clés` : '';
+      caution.querySelector('span').textContent = d.caution || '';
       devis.hidden = false;
       rassure.hidden = !d.disponible;
       bouton.disabled = !d.disponible;
-      bouton.textContent = 'Réserver';
+      bouton.textContent = t('Réserver');
       montreMessage(d.disponible ? null : d.message);
       barrePrix.textContent = d.total;
-      barreUnite.textContent = `pour ${d.jours} jour${d.jours > 1 ? 's' : ''}`;
+      barreUnite.textContent = d.unite;
     } catch (e) {
-      if (e.name !== 'AbortError') montreMessage('Le prix n’a pas pu être calculé. Vérifiez votre connexion puis réessayez.');
+      if (e.name !== 'AbortError') montreMessage(t('Le prix n’a pas pu être calculé. Vérifiez votre connexion puis réessayez.'));
     } finally {
       form.removeAttribute('aria-busy');
     }
