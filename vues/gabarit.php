@@ -45,6 +45,7 @@ $scripts ??= [];
 <?= $contenu ?>
 </main>
 <?php partiel('pied') ?>
+<?php partiel('assistant') ?>
 <script src="<?= asset('js/site.js') ?>" defer></script>
 <?php foreach ($scripts as $s): ?>
 <script src="<?= asset('js/' . $s) ?>" defer></script>
