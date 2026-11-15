@@ -15,6 +15,8 @@ final class Pages
             'titre' => t('Location de SUV et 4x4 au Cameroun'),
             'description' => t('Louez un SUV Jetour, un 4x4 ou un van avec ou sans chauffeur à Douala, Yaoundé et Bafoussam. Prix exact en ligne, paiement Mobile Money, livraison aux aéroports.'),
             'page' => 'accueil',
+            // Lever de rideau seulement si l'accueil est la première page de la visite.
+            'entree' => empty($_SESSION['logo_vu']),
             'demande' => $d,
             'cartes' => self::cartes(Flotte::tous(), null),
             'compte' => Flotte::compteParCategorie(),

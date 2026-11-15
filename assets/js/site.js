@@ -128,7 +128,9 @@
   }));
 
   // Logo : une fois le tracé fini, plus de masque ni de découpe, le dessin reste net.
+  // Celui du lever de rideau part avec le rideau.
   document.querySelectorAll('.logo-arrivee').forEach((svg) => {
+    if (svg.closest('[data-entree]')) return;
     Promise.all(svg.getAnimations({ subtree: true }).map((a) => a.finished)).then(() => {
       svg.classList.remove('logo-arrivee');
       svg.querySelectorAll('[mask], [clip-path]').forEach((el) => { el.removeAttribute('mask'); el.removeAttribute('clip-path'); });
@@ -137,8 +139,57 @@
 
   // Moment signature de l'accueil, joué une seule fois puis retiré.
   // La classe est posée dans le HTML pour jouer dès le premier affichage.
-  document.querySelectorAll('.signature-en-cours, .signature-confirmation').forEach((bloc) => {
-    Promise.all(bloc.getAnimations({ subtree: true }).map((a) => a.finished))
-      .then(() => bloc.classList.remove('signature-en-cours', 'signature-confirmation'));
-  });
+  const signe = (bloc) => Promise.all(bloc.getAnimations({ subtree: true }).map((a) => a.finished))
+    .then(() => bloc.classList.remove('signature-en-cours', 'signature-confirmation'));
+  document.querySelectorAll('.signature-en-cours, .signature-confirmation').forEach(signe);
+
+  // Lever de rideau : le titre se pose quand le rideau s'ouvre. N'importe quel geste
+  // (clic, touche, molette, doigt) le passe : personne n'attend la fin pour réserver.
+  const entree = document.querySelector('[data-entree]');
+  if (entree) {
+    const hero = document.querySelector('[data-signature-differee]');
+    const gestes = ['pointerdown', 'keydown', 'wheel', 'touchstart'];
+    let titrePose = false;
+    let fini = false;
+    let auClavier = false;
+    const poseTitre = () => {
+      if (titrePose || !hero) return;
+      titrePose = true;
+      hero.classList.add('signature-en-cours');
+      signe(hero);
+    };
+    const termine = () => {
+      if (fini) return;
+      fini = true;
+      gestes.forEach((g) => window.removeEventListener(g, geste));
+      poseTitre();
+      // Au clavier, le focus reprend au début de la page plutôt que de se perdre avec le rideau.
+      const focusDedans = entree.contains(document.activeElement);
+      entree.remove();
+      if (focusDedans && auClavier) document.querySelector('.evitement')?.focus();
+    };
+    const passe = () => {
+      if (fini) return;
+      poseTitre();
+      entree.classList.add('entree-passee');
+      setTimeout(termine, 200);
+    };
+    const geste = (e) => {
+      if (e.type === 'keydown' && ['Shift', 'Control', 'Alt', 'Meta'].includes(e.key)) return;
+      auClavier = e.type === 'keydown';
+      passe();
+    };
+
+    // Mouvement réduit : pas de rideau, le titre reste posé tel quel.
+    if (getComputedStyle(entree).display === 'none') {
+      entree.remove();
+    } else {
+      gestes.forEach((g) => window.addEventListener(g, geste, { passive: true }));
+      entree.querySelector('[data-entree-passer]').addEventListener('click', passe);
+      entree.querySelector('.entree-rideau').addEventListener('animationstart', (e) => {
+        if (e.animationName === 'entree-rideau') poseTitre();
+      });
+      Promise.all(entree.getAnimations({ subtree: true }).map((a) => a.finished)).then(termine, () => {});
+    }
+  }
 })();

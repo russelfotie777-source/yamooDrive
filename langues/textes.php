@@ -326,6 +326,7 @@ return [
     'Partenaire SKY MOTORS, distributeur Jetour et JMC' => ['Partner of SKY MOTORS, Jetour and JMC distributor', 'Socio de SKY MOTORS, distribuidor de Jetour y JMC', 'Partner von SKY MOTORS, Händler für Jetour und JMC', '合作伙伴：SKY MOTORS（捷途和江铃经销商）', 'شريك SKY MOTORS، موزّع Jetour وJMC'],
     'Passer en mode clair' => ['Switch to light mode', 'Cambiar al modo claro', 'Zum hellen Design wechseln', '切换到浅色模式', 'التبديل إلى الوضع الفاتح'],
     'Passer en mode sombre' => ['Switch to dark mode', 'Cambiar al modo oscuro', 'Zum dunklen Design wechseln', '切换到深色模式', 'التبديل إلى الوضع الداكن'],
+    'Passer l’intro' => ['Skip intro', 'Saltar la intro', 'Intro überspringen', '跳过片头', 'تخطي المقدمة'],
     'Payer maintenant' => ['Pay now', 'Pagar ahora', 'Jetzt bezahlen', '立即付款', 'ادفع الآن'],
     'Payer {total}' => ['Pay {total}', 'Pagar {total}', '{total} bezahlen', '支付 {total}', 'ادفع {total}'],
     'Payer à la remise des clés' => ['Pay at key handover', 'Pagar al entregar las llaves', 'Bei der Schlüsselübergabe bezahlen', '交车时付款', 'الدفع عند تسليم المفاتيح'],
