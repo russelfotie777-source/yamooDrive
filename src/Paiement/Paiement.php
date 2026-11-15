@@ -29,7 +29,7 @@ final class Paiement
             return null;
         } catch (Throwable $e) {
             Reservations::maj($r['id'], ['paiement_statut' => 'echec'], 'Échec du lancement : ' . $e->getMessage(), 'paiement');
-            return 'Le paiement n’a pas pu être lancé. Vérifiez le numéro puis réessayez, ou choisissez le paiement à la remise des clés.';
+            return t('Le paiement n’a pas pu être lancé. Vérifiez le numéro puis réessayez, ou choisissez le paiement à la remise des clés.');
         }
     }
 

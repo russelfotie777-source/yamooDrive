@@ -25,11 +25,11 @@
           <td><strong><?= e($v['nom']) ?></strong><span class="discret"><?= e($v['type']) ?></span></td>
           <td><?php foreach ($v['tarifs'] as $f => $prix): ?><span class="discret-ligne"><?= $f === 'sans' ? 'Sans' : 'Avec' ?> chauffeur · <?= fcfa($prix) ?></span><?php endforeach ?></td>
           <td><?php if (!$etats[$slug]): ?><span class="discret">Aucune</span><?php endif ?>
-            <?php foreach (array_slice($etats[$slug], 0, 3) as $o): ?><span class="discret-ligne"><?= e(date_fr($o['debut'], 'd MMM')) ?> – <?= e(date_fr($o['fin'], 'd MMM')) ?></span><?php endforeach ?></td>
+            <?php foreach (array_slice($etats[$slug], 0, 3) as $o): ?><span class="discret-ligne"><?= e(date_texte($o['debut'], 'dMMM')) ?> – <?= e(date_texte($o['fin'], 'dMMM')) ?></span><?php endforeach ?></td>
           <td><?php if (empty($blocages[$slug])): ?><span class="discret">Aucune</span><?php endif ?>
             <?php foreach ($blocages[$slug] ?? [] as $b): ?>
               <form method="post" class="blocage"><?= champ_csrf() ?>
-                <span><?= e(date_fr($b['debut'], 'd MMM')) ?> – <?= e(date_fr(date_locale($b['fin'])->modify('-1 day'), 'd MMM')) ?><?= $b['motif'] ? ' · ' . e($b['motif']) : '' ?></span>
+                <span><?= e(date_texte($b['debut'], 'dMMM')) ?> – <?= e(date_texte(date_locale($b['fin'])->modify('-1 day'), 'dMMM')) ?><?= $b['motif'] ? ' · ' . e($b['motif']) : '' ?></span>
                 <button class="bouton-lien" name="supprimer" value="<?= (int) $b['id'] ?>">Retirer</button>
               </form>
             <?php endforeach ?></td>

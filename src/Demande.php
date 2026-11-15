@@ -64,11 +64,11 @@ final class Demande
     {
         $this->erreurs = [];
         if (!$this->vehicule) {
-            $this->erreurs['vehicule'] = 'Choisissez un véhicule.';
+            $this->erreurs['vehicule'] = t('Choisissez un véhicule.');
             return false;
         }
         if (!Flotte::propose($this->vehicule, $this->formule)) {
-            $this->erreurs['formule'] = 'Ce véhicule se loue uniquement avec chauffeur.';
+            $this->erreurs['formule'] = t('Ce véhicule se loue uniquement avec chauffeur.');
         }
         return $this->valideDates() && !$this->erreurs;
     }
@@ -77,22 +77,22 @@ final class Demande
     {
         unset($this->erreurs['debut'], $this->erreurs['fin']);
         if (!$this->debut) {
-            $this->erreurs['debut'] = 'Indiquez le jour et l’heure de départ.';
+            $this->erreurs['debut'] = t('Indiquez le jour et l’heure de départ.');
         }
         if (!$this->fin) {
-            $this->erreurs['fin'] = 'Indiquez le jour et l’heure de retour.';
+            $this->erreurs['fin'] = t('Indiquez le jour et l’heure de retour.');
         }
         if (!$this->debut || !$this->fin) {
             return false;
         }
         $delai = config('regles.delai_minimum_heures');
         if ($this->debut < maintenant()->modify("+$delai hours")) {
-            $this->erreurs['debut'] = "Le départ doit être au moins $delai heures après maintenant. Choisissez une heure plus tardive.";
+            $this->erreurs['debut'] = t('Le départ doit être au moins {heures} heures après maintenant. Choisissez une heure plus tardive.', ['heures' => $delai]);
         }
         if ($this->fin <= $this->debut) {
-            $this->erreurs['fin'] = 'Le retour doit être après le départ.';
+            $this->erreurs['fin'] = t('Le retour doit être après le départ.');
         } elseif (Devis::jours($this->debut, $this->fin) > config('regles.duree_max_jours')) {
-            $this->erreurs['fin'] = 'Pour plus de ' . config('regles.duree_max_jours') . ' jours, écrivez-nous sur WhatsApp : nous préparons un devis.';
+            $this->erreurs['fin'] = t('Pour plus de {jours} jours, écrivez-nous sur WhatsApp : nous préparons un devis.', ['jours' => config('regles.duree_max_jours')]);
         }
         return !isset($this->erreurs['debut']) && !isset($this->erreurs['fin']);
     }

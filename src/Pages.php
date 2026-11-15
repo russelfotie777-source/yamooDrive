@@ -12,8 +12,8 @@ final class Pages
     {
         $d = Demande::depuis($_GET);
         vue('accueil', [
-            'titre' => 'Location de SUV et 4x4 au Cameroun',
-            'description' => 'Louez un SUV Jetour, un 4x4 ou un van avec ou sans chauffeur à Douala, Yaoundé et Bafoussam. Prix exact en ligne, paiement Mobile Money, livraison aux aéroports.',
+            'titre' => t('Location de SUV et 4x4 au Cameroun'),
+            'description' => t('Louez un SUV Jetour, un 4x4 ou un van avec ou sans chauffeur à Douala, Yaoundé et Bafoussam. Prix exact en ligne, paiement Mobile Money, livraison aux aéroports.'),
             'page' => 'accueil',
             'demande' => $d,
             'cartes' => self::cartes(Flotte::tous(), null),
@@ -31,7 +31,7 @@ final class Pages
         $cartes = self::cartes(Flotte::filtre(null, $formule), $avecDates ? $d : null, $formule);
         $libres = count(array_filter($cartes, fn ($c) => $c['disponible']));
         vue('catalogue', [
-            'titre' => $avecDates ? 'Véhicules du ' . date_fr($d->debut, 'd MMM') . ' au ' . date_fr($d->fin, 'd MMM') : 'Tous nos véhicules',
+            'titre' => $avecDates ? t('Véhicules du {debut} au {fin}', ['debut' => date_texte($d->debut, 'dMMM'), 'fin' => date_texte($d->fin, 'dMMM')]) : t('Tous nos véhicules'),
             'page' => 'catalogue',
             'demande' => $d,
             'formuleFiltre' => $formule,
@@ -61,12 +61,12 @@ final class Pages
                 $c['disponible'] = Disponibilite::estLibre($v, $d->debut, $d->fin);
                 if (!$c['disponible']) {
                     $libre = Disponibilite::libreA($v, $d->debut, $d->fin);
-                    $c['etat'] = $libre ? 'Réservé jusqu’au ' . date_fr($libre, 'd MMM') . ', ' . heure($libre) : 'Réservé à ces dates';
+                    $c['etat'] = $libre ? t('Réservé jusqu’au {date}, {heure}', ['date' => date_texte($libre, 'dMMM'), 'heure' => heure($libre)]) : t('Réservé à ces dates');
                 }
                 $c['lien'] = url('/vehicules/' . $v['slug'], $copie->versParams());
             } else {
                 $retour = Disponibilite::etatActuel($v);
-                $c['etat'] = $retour ? 'En location jusqu’au ' . date_fr($retour, 'd MMM') : null;
+                $c['etat'] = $retour ? t('En location jusqu’au {date}', ['date' => date_texte($retour, 'dMMM')]) : null;
                 $c['lien'] = url('/vehicules/' . $v['slug'], ['formule' => $formule]);
             }
             $cartes[] = $c;
@@ -94,8 +94,8 @@ final class Pages
             $semblables += array_slice(array_filter(Flotte::tous(), fn ($x) => $x['slug'] !== $slug && !isset($semblables[$x['slug']])), 0, 4 - count($semblables));
         }
         vue('vehicule', [
-            'titre' => $v['nom'] . ' à louer ' . mb_strtolower(Flotte::formulesTexte($v)),
-            'description' => $v['resume'] . ' ' . $v['places_texte'] . ', ' . mb_strtolower(Flotte::formulesTexte($v)) . ', à partir de ' . fcfa(Flotte::prixDepart($v)) . ' par jour.',
+            'titre' => t('{nom} à louer', ['nom' => $v['nom']]),
+            'description' => $v['resume'] . ' ' . $v['places_texte'] . ', ' . Flotte::formulesTexte($v) . '. ' . t('À partir de {prix} par jour', ['prix' => fcfa(Flotte::prixDepart($v))]) . '.',
             'page' => 'vehicule',
             'v' => $v,
             'demande' => $d,
@@ -113,11 +113,11 @@ final class Pages
         $v = Flotte::trouve($slug) ?? self::introuvable();
         $d = Demande::depuis($_GET, $v);
         if (!$d->valide()) {
-            self::flash(reset($d->erreurs) ?: 'Choisissez vos dates pour réserver.');
+            self::flash(reset($d->erreurs) ?: t('Choisissez vos dates pour réserver.'));
             redirige(url('/vehicules/' . $slug, $d->versParams()) . '#reserver');
         }
         if (!Disponibilite::estLibre($v, $d->debut, $d->fin)) {
-            self::flash('Ce véhicule vient d’être réservé à ces dates. Choisissez d’autres dates ou un autre véhicule.');
+            self::flash(t('Ce véhicule vient d’être réservé à ces dates. Choisissez d’autres dates ou un autre véhicule.'));
             redirige(url('/vehicules/' . $slug, $d->versParams()) . '#reserver');
         }
         self::formulaire($d, [], []);
@@ -126,7 +126,7 @@ final class Pages
     private static function formulaire(Demande $d, array $erreurs, array $ancien): void
     {
         vue('reserver', [
-            'titre' => 'Réserver le ' . $d->vehicule['court'],
+            'titre' => t('Réserver le {nom}', ['nom' => $d->vehicule['court']]),
             'page' => 'reserver',
             'v' => $d->vehicule,
             'demande' => $d,
@@ -155,15 +155,15 @@ final class Pages
 
         $nom = trim((string) ($p['nom'] ?? ''));
         if (mb_strlen($nom) < 3) {
-            $erreurs['nom'] = 'Écrivez votre nom et votre prénom.';
+            $erreurs['nom'] = t('Écrivez votre nom et votre prénom.');
         }
         $telephone = self::telephone((string) ($p['telephone'] ?? ''));
         if (!$telephone) {
-            $erreurs['telephone'] = 'Écrivez un numéro joignable, par exemple 6 72 89 40 84.';
+            $erreurs['telephone'] = t('Écrivez un numéro joignable, par exemple 6 72 89 40 84.');
         }
         $email = trim((string) ($p['email'] ?? ''));
         if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $erreurs['email'] = 'Cette adresse e-mail n’est pas valide. Corrigez-la ou laissez le champ vide.';
+            $erreurs['email'] = t('Cette adresse e-mail n’est pas valide. Corrigez-la ou laissez le champ vide.');
         }
 
         $extra = [];
@@ -174,16 +174,16 @@ final class Pages
                 $detail['vol'] = strtoupper(mb_substr(trim((string) ($p['vol'] ?? '')), 0, 12));
                 $detail['atterrissage'] = preg_match('/^\d{2}:\d{2}$/', $p['atterrissage'] ?? '') ? $p['atterrissage'] : '';
                 if ($detail['vol'] === '') {
-                    $erreurs['vol'] = 'Indiquez le numéro de vol pour que le chauffeur vous attende.';
+                    $erreurs['vol'] = t('Indiquez le numéro de vol pour que le chauffeur vous attende.');
                 }
                 if ($detail['atterrissage'] === '') {
-                    $erreurs['atterrissage'] = 'Indiquez l’heure d’atterrissage.';
+                    $erreurs['atterrissage'] = t('Indiquez l’heure d’atterrissage.');
                 }
             }
             if ($mission === 'voyage') {
                 $detail['destination'] = mb_substr(trim((string) ($p['destination'] ?? '')), 0, 120);
                 if ($detail['destination'] === '') {
-                    $erreurs['destination'] = 'Indiquez la destination du voyage.';
+                    $erreurs['destination'] = t('Indiquez la destination du voyage.');
                 }
             }
             $extra['mission'] = $mission;
@@ -203,21 +203,21 @@ final class Pages
             $operateur = in_array($p['operateur'] ?? '', ['mtn', 'orange'], true) ? $p['operateur'] : null;
             $numero = Paiement::numero((string) ($p['numero'] ?? ''));
             if (!$operateur) {
-                $erreurs['operateur'] = 'Choisissez MTN Mobile Money ou Orange Money.';
+                $erreurs['operateur'] = t('Choisissez MTN Mobile Money ou Orange Money.');
             }
             if (!$numero) {
-                $erreurs['numero'] = 'Écrivez le numéro Mobile Money à 9 chiffres, par exemple 6 72 89 40 84.';
+                $erreurs['numero'] = t('Écrivez le numéro Mobile Money à 9 chiffres, par exemple 6 72 89 40 84.');
             }
             $extra['operateur'] = $operateur;
             $extra['numero'] = $numero;
         }
         if (empty($p['conditions'])) {
-            $erreurs['conditions'] = 'Acceptez les conditions de location pour continuer.';
+            $erreurs['conditions'] = t('Acceptez les conditions de location pour continuer.');
         }
 
         if ($erreurs) {
             if ($d->formule === 'sans' && !$erreursPieces) {
-                $erreurs['pieces'] = 'Pour votre sécurité, les photos ne sont pas gardées après une erreur : ajoutez-les de nouveau.';
+                $erreurs['pieces'] = t('Pour votre sécurité, les photos ne sont pas gardées après une erreur : ajoutez-les de nouveau.');
             }
             http_response_code(422);
             self::formulaire($d, $erreurs, $ancien);
@@ -230,7 +230,7 @@ final class Pages
         $pdo->exec('BEGIN IMMEDIATE');
         if (!Disponibilite::estLibre($v, $d->debut, $d->fin)) {
             $pdo->exec('ROLLBACK');
-            self::flash('Ce véhicule vient d’être réservé à ces dates. Choisissez d’autres dates ou un autre véhicule.');
+            self::flash(t('Ce véhicule vient d’être réservé à ces dates. Choisissez d’autres dates ou un autre véhicule.'));
             redirige(url('/vehicules/' . $slug, $d->versParams()) . '#reserver');
         }
         $r = Reservations::cree($d, Devis::calcule($d), ['nom' => $nom, 'telephone' => $telephone, 'email' => $email], $extra);
@@ -276,7 +276,7 @@ final class Pages
             redirige(url('/reservation/' . $code, ['j' => $r['jeton']]));
         }
         vue('paiement', [
-            'titre' => 'Validez le paiement',
+            'titre' => t('Validez le paiement'),
             'page' => 'paiement',
             'r' => $r,
             'demo' => Paiement::fournisseur()->estDemo(),
@@ -318,7 +318,7 @@ final class Pages
             redirige(url('/paiement/' . $code, ['j' => $r['jeton']]));
         }
         vue('reservation', [
-            'titre' => 'Réservation ' . $r['code'],
+            'titre' => t('Réservation {code}', ['code' => $r['code']]),
             'page' => 'reservation',
             'r' => $r,
             'flash' => self::flash(),
@@ -338,9 +338,9 @@ final class Pages
             'DTSTAMP:' . gmdate('Ymd\THis\Z'),
             'DTSTART:' . $f($r['debut']),
             'DTEND:' . $f($r['fin']),
-            'SUMMARY:' . $echappe('Location ' . $r['v']['nom'] . ' – Yamoo Drive'),
-            'LOCATION:' . $echappe(config("lieux.{$r['lieu_depart']}.nom")),
-            'DESCRIPTION:' . $echappe('Réservation ' . $r['code'] . '. Total ' . fcfa($r['total']) . '. WhatsApp ' . config('contact.telephone_affiche')),
+            'SUMMARY:' . $echappe(t('Location {nom}', ['nom' => $r['v']['nom']]) . ' – Yamoo Drive'),
+            'LOCATION:' . $echappe(lieu($r['lieu_depart'])),
+            'DESCRIPTION:' . $echappe(t('Réservation {code}', ['code' => $r['code']]) . '. ' . t('Total') . ' ' . fcfa($r['total']) . '. WhatsApp ' . config('contact.telephone_affiche')),
             'END:VEVENT', 'END:VCALENDAR',
         ];
         header('Content-Type: text/calendar; charset=utf-8');
@@ -353,29 +353,29 @@ final class Pages
         verifie_csrf();
         $r = Reservations::pourClient($code, $_POST['j'] ?? null) ?? self::introuvable();
         if (!Reservations::annulableParClient($r)) {
-            self::flash('L’annulation gratuite n’est plus possible pour cette réservation. Écrivez-nous sur WhatsApp.');
+            self::flash(t('L’annulation gratuite n’est plus possible pour cette réservation. Écrivez-nous sur WhatsApp.'));
         } else {
             $note = 'Annulée par le client.' . ($r['paiement_statut'] === 'paye' ? ' Remboursement de ' . fcfa($r['total']) . ' à faire.' : '');
             Reservations::maj($r['id'], ['statut' => 'annulee'], $note);
-            self::flash('Réservation annulée.');
+            self::flash(t('Réservation annulée.'));
         }
         redirige(url('/reservation/' . $code, ['j' => $r['jeton']]));
     }
 
     public static function conditions(): void
     {
-        vue('conditions', ['titre' => 'Conditions de location', 'page' => 'conditions']);
+        vue('conditions', ['titre' => t('Conditions de location'), 'page' => 'conditions']);
     }
 
     public static function credits(): void
     {
-        vue('credits', ['titre' => 'Crédits photos', 'page' => 'credits']);
+        vue('credits', ['titre' => t('Crédits photos'), 'page' => 'credits']);
     }
 
     public static function apiAssistant(): void
     {
         if (!hash_equals(csrf(), (string) ($_SERVER['HTTP_X_CSRF'] ?? ''))) {
-            json(['texte' => 'La page a expiré. Rechargez-la puis reposez votre question.', 'cartes' => [], 'action' => null], 419);
+            json(['texte' => t('La page a expiré. Rechargez-la puis reposez votre question.'), 'cartes' => [], 'action' => null], 419);
         }
         $corps = json_decode(file_get_contents('php://input') ?: '[]', true);
         json(Assistant::reponds($corps['messages'] ?? null));
@@ -385,7 +385,7 @@ final class Pages
     {
         $v = Flotte::trouve($_GET['vehicule'] ?? null);
         if (!$v) {
-            json(['ok' => false, 'erreurs' => ['vehicule' => 'Véhicule inconnu.']], 404);
+            json(['ok' => false, 'erreurs' => ['vehicule' => t('Véhicule inconnu.')]], 404);
         }
         $d = Demande::depuis($_GET, $v);
         if (!$d->valide()) {
@@ -397,16 +397,17 @@ final class Pages
         json([
             'ok' => true,
             'disponible' => $libre,
-            'message' => $libre ? null : ($libreA ? 'Réservé jusqu’au ' . date_fr($libreA, 'EEEE d MMMM') . ' à ' . heure($libreA) . '. Choisissez d’autres dates.' : 'Déjà réservé à ces dates. Choisissez d’autres dates.'),
+            'message' => $libre ? null : ($libreA ? t('Réservé jusqu’au {date} à {heure}. Choisissez d’autres dates.', ['date' => date_texte($libreA, 'EEEEdMMMM'), 'heure' => heure($libreA)]) : t('Déjà réservé à ces dates. Choisissez d’autres dates.')),
             'jours' => $devis['jours'],
             'lignes' => array_values(array_filter([
-                [fcfa($devis['prix_jour']) . ' × ' . pluriel($devis['jours'], 'jour', 'jours'), fcfa($devis['montant_location'])],
-                $devis['frais_rapatriement'] ? ['Frais de rapatriement', fcfa($devis['frais_rapatriement'])] : null,
+                [fcfa($devis['prix_jour']) . ' × ' . nb_jours($devis['jours']), fcfa($devis['montant_location'])],
+                $devis['frais_rapatriement'] ? [t('Frais de rapatriement'), fcfa($devis['frais_rapatriement'])] : null,
             ])),
             'total' => fcfa($devis['total']),
             'prix_jour' => fcfa($devis['prix_jour']),
-            'caution' => $devis['caution'] ? fcfa($devis['caution']) : null,
-            'annulation' => $devis['annulation_jusqua'] ? 'Annulation gratuite jusqu’au ' . date_fr($devis['annulation_jusqua'], 'd MMMM') . ' à ' . heure($devis['annulation_jusqua']) : null,
+            'unite' => t('pour {duree}', ['duree' => nb_jours($devis['jours'])]),
+            'caution' => $devis['caution'] ? t('Caution remboursable de {montant} à la remise des clés', ['montant' => fcfa($devis['caution'])]) : null,
+            'annulation' => $devis['annulation_jusqua'] ? t('Annulation gratuite jusqu’au {date} à {heure}', ['date' => date_texte($devis['annulation_jusqua'], 'dMMMM'), 'heure' => heure($devis['annulation_jusqua'])]) : null,
             'lien' => url('/reserver/' . $v['slug'], $d->versParams()),
         ]);
     }
@@ -415,7 +416,7 @@ final class Pages
     {
         $r = Reservations::pourClient($code, $_GET['j'] ?? null);
         if (!$r) {
-            json(['erreur' => 'Réservation introuvable.'], 404);
+            json(['erreur' => t('Réservation introuvable.')], 404);
         }
         Reservations::expire();
         $r = Paiement::verifie(Reservations::parCode($code));
@@ -455,7 +456,7 @@ final class Pages
     private static function introuvable(): never
     {
         http_response_code(404);
-        vue('erreur', ['titre' => 'Page introuvable', 'message' => 'Ce véhicule ou cette réservation n’existe pas. Revenez à l’accueil pour choisir un véhicule.']);
+        vue('erreur', ['titre' => t('Page introuvable'), 'message' => t('Ce véhicule ou cette réservation n’existe pas. Revenez à l’accueil pour choisir un véhicule.')]);
         exit;
     }
 }

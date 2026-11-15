@@ -30,9 +30,9 @@ $anciennete = !empty($conducteur['permis']) ? date_locale($conducteur['permis'])
       <h2 class="panneau-titre">Location</h2>
       <dl class="definitions">
         <div><dt>Véhicule</dt><dd><?= e($r['v']['nom'] ?? $r['vehicule']) ?>, <?= $r['formule'] === 'sans' ? 'sans chauffeur' : 'avec chauffeur' ?></dd></div>
-        <div><dt>Départ</dt><dd><?= e(date_fr($r['debut'], 'EEEE d MMMM y')) ?> à <?= heure($r['debut']) ?> · <?= e(config("lieux.{$r['lieu_depart']}.nom")) ?></dd></div>
-        <div><dt>Retour</dt><dd><?= e(date_fr($r['fin'], 'EEEE d MMMM y')) ?> à <?= heure($r['fin']) ?> · <?= e(config("lieux.{$r['lieu_retour']}.nom")) ?></dd></div>
-        <div><dt>Durée</dt><dd><?= pluriel((int) $r['jours'], 'jour', 'jours') ?> à <?= fcfa($r['prix_jour']) ?></dd></div>
+        <div><dt>Départ</dt><dd><?= e(date_texte($r['debut'], 'yMMMMEEEEd')) ?> à <?= heure($r['debut']) ?> · <?= e(config("lieux.{$r['lieu_depart']}.nom")) ?></dd></div>
+        <div><dt>Retour</dt><dd><?= e(date_texte($r['fin'], 'yMMMMEEEEd')) ?> à <?= heure($r['fin']) ?> · <?= e(config("lieux.{$r['lieu_retour']}.nom")) ?></dd></div>
+        <div><dt>Durée</dt><dd><?= nb_jours((int) $r['jours']) ?> à <?= fcfa($r['prix_jour']) ?></dd></div>
         <?php if ($r['frais_rapatriement']): ?><div><dt>Rapatriement</dt><dd><?= fcfa($r['frais_rapatriement']) ?></dd></div><?php endif ?>
         <div><dt>Total</dt><dd><strong><?= fcfa($r['total']) ?></strong></dd></div>
         <?php if ($r['caution']): ?><div><dt>Caution</dt><dd><?= fcfa($r['caution']) ?> à encaisser à la remise des clés</dd></div><?php endif ?>
@@ -56,8 +56,8 @@ $anciennete = !empty($conducteur['permis']) ? date_locale($conducteur['permis'])
       <section class="panneau">
         <h2 class="panneau-titre">Conducteur</h2>
         <dl class="definitions">
-          <div><dt>Né le</dt><dd><?= !empty($conducteur['naissance']) ? e(date_fr($conducteur['naissance'], 'd MMMM y')) . " · $age ans au départ" : '–' ?></dd></div>
-          <div><dt>Permis depuis</dt><dd><?= !empty($conducteur['permis']) ? e(date_fr($conducteur['permis'], 'd MMMM y')) . " · $anciennete ans au départ" : '–' ?></dd></div>
+          <div><dt>Né le</dt><dd><?= !empty($conducteur['naissance']) ? e(date_texte($conducteur['naissance'], 'yMMMMd')) . " · $age ans au départ" : '–' ?></dd></div>
+          <div><dt>Permis depuis</dt><dd><?= !empty($conducteur['permis']) ? e(date_texte($conducteur['permis'], 'yMMMMd')) . " · $anciennete ans au départ" : '–' ?></dd></div>
         </dl>
         <ul class="pieces-liste">
           <?php foreach (Conducteur::PIECES as $cle => $libelle): ?>
@@ -94,6 +94,7 @@ $anciennete = !empty($conducteur['permis']) ? date_locale($conducteur['permis'])
       <p><strong><?= e($r['client_nom']) ?></strong></p>
       <p><a href="tel:<?= e($r['client_telephone']) ?>"><?= e(telephone_lisible($r['client_telephone'])) ?></a></p>
       <?php if ($r['client_email']): ?><p><a href="mailto:<?= e($r['client_email']) ?>"><?= e($r['client_email']) ?></a></p><?php endif ?>
+      <p class="discret">A réservé en <?= e(Yamoo\Langue::LANGUES[$r['langue'] ?? 'fr']['nom'] ?? 'Français') ?></p>
       <a class="bouton bouton-petit bouton-contour" href="https://wa.me/<?= e(ltrim($r['client_telephone'], '+')) ?>?text=<?= rawurlencode('Bonjour ' . $r['client_nom'] . ', Yamoo Drive au sujet de votre réservation ' . $r['code'] . '.') ?>" target="_blank" rel="noopener"><?= icone('whatsapp') ?>Écrire au client</a>
     </section>
     <section class="panneau">
@@ -106,7 +107,7 @@ $anciennete = !empty($conducteur['permis']) ? date_locale($conducteur['permis'])
       </form>
       <ol class="journal">
         <?php foreach ($journal as $j): ?>
-          <li><p><?= e($j['detail']) ?></p><time datetime="<?= e($j['cree_le']) ?>" title="<?= e($j['cree_le']) ?>"><?= e(date_fr($j['cree_le'], 'd MMM')) ?>, <?= heure($j['cree_le']) ?></time></li>
+          <li><p><?= e($j['detail']) ?></p><time datetime="<?= e($j['cree_le']) ?>" title="<?= e($j['cree_le']) ?>"><?= e(date_texte($j['cree_le'], 'dMMM')) ?>, <?= heure($j['cree_le']) ?></time></li>
         <?php endforeach ?>
       </ol>
     </section>

@@ -30,8 +30,8 @@
             <td><a class="code" href="<?= url('/equipe/reservations/' . $r['code']) ?>"><?= e($r['code']) ?></a></td>
             <td><?= e($r['client_nom']) ?><span class="discret"><?= e(telephone_lisible($r['client_telephone'])) ?></span></td>
             <td><?= e($r['v']['court'] ?? $r['vehicule']) ?><span class="discret"><?= $r['formule'] === 'sans' ? 'Sans chauffeur' : 'Avec chauffeur' ?></span></td>
-            <td class="nombre-gauche"><?= e(date_fr($r['debut'], 'd MMM')) ?>, <?= heure($r['debut']) ?><span class="discret"><?= e(config("lieux.{$r['lieu_depart']}.court")) ?></span></td>
-            <td class="nombre-gauche"><?= e(date_fr($r['fin'], 'd MMM')) ?>, <?= heure($r['fin']) ?><span class="discret"><?= e(config("lieux.{$r['lieu_retour']}.court")) ?></span></td>
+            <td class="nombre-gauche"><?= e(date_texte($r['debut'], 'dMMM')) ?>, <?= heure($r['debut']) ?><span class="discret"><?= e(config("lieux.{$r['lieu_depart']}.court")) ?></span></td>
+            <td class="nombre-gauche"><?= e(date_texte($r['fin'], 'dMMM')) ?>, <?= heure($r['fin']) ?><span class="discret"><?= e(config("lieux.{$r['lieu_retour']}.court")) ?></span></td>
             <td><span class="statut statut-<?= e($r['statut']) ?>"><?= e(Reservations::STATUTS[$r['statut']]) ?></span><?php if ($r['paiement_statut'] === 'paye'): ?><span class="discret">Payée</span><?php endif ?></td>
             <td class="nombre"><?= fcfa($r['total']) ?></td>
           </tr>

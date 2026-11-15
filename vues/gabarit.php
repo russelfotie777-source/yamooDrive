@@ -1,10 +1,12 @@
 <?php
 /** @var string $contenu */
+use Yamoo\Langue;
+
 $titreComplet = ($page ?? '') === 'accueil' ? 'Yamoo Drive – ' . $titre : $titre . ' – Yamoo Drive';
-$description ??= 'Location de véhicules avec ou sans chauffeur à Douala, Yaoundé et Bafoussam. Réservation et paiement Mobile Money en ligne.';
+$description ??= t('Location de véhicules avec ou sans chauffeur à Douala, Yaoundé et Bafoussam. Réservation et paiement Mobile Money en ligne.');
 $scripts ??= [];
 ?><!doctype html>
-<html lang="fr">
+<html lang="<?= e(Langue::info('html')) ?>" dir="<?= e(Langue::info('sens')) ?>" data-intl="<?= e(Langue::info('intl')) ?>">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -17,7 +19,11 @@ $scripts ??= [];
 <meta property="og:title" content="<?= e($titreComplet) ?>">
 <meta property="og:description" content="<?= e($description) ?>">
 <meta property="og:image" content="<?= e(url_absolue('/assets/img/accueil/t2-milnerton-1280.jpg')) ?>">
-<meta property="og:locale" content="fr_CM">
+<meta property="og:locale" content="<?= e(Langue::info('og')) ?>">
+<?php foreach (Langue::LANGUES as $code => $l): ?>
+<link rel="alternate" hreflang="<?= e($l['html']) ?>" href="<?= e(url_langue($code, true)) ?>">
+<?php endforeach ?>
+<link rel="alternate" hreflang="x-default" href="<?= e(url_langue('fr', true)) ?>">
 <link rel="icon" href="<?= asset('img/marque/icone-32.png') ?>" sizes="32x32">
 <link rel="apple-touch-icon" href="<?= asset('img/marque/icone-180.png') ?>">
 <link rel="preload" href="<?= base() ?>/assets/polices/figtree-latin.woff2" as="font" type="font/woff2" crossorigin>
@@ -34,12 +40,14 @@ $scripts ??= [];
     'logo' => url_absolue('/assets/img/marque/icone-512.png'),
     'address' => ['@type' => 'PostalAddress', 'streetAddress' => 'Logpom, carrefour Adem', 'addressLocality' => 'Douala', 'addressRegion' => 'Littoral', 'addressCountry' => 'CM'],
     'areaServed' => ['Douala', 'Yaoundé', 'Bafoussam'],
-    'priceRange' => 'À partir de 30 000 FCFA par jour',
+    'priceRange' => t('À partir de {prix} par jour', ['prix' => fcfa(30000)]),
+    'availableLanguage' => array_column(Langue::LANGUES, 'nom'),
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) ?></script>
+<script type="application/json" id="textes-js"><?= json_encode(Langue::textesJs(), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?></script>
 </head>
-<body class="page-<?= e($page ?? 'autre') ?>" data-base="<?= e(base()) ?>" data-csrf="<?= e(csrf()) ?>">
+<body class="page-<?= e($page ?? 'autre') ?>" data-base="<?= e(base()) ?>" data-racine="<?= e(base() . Langue::prefixe()) ?>" data-csrf="<?= e(csrf()) ?>">
 <?php partiel('icones') ?>
-<a class="evitement" href="#contenu">Aller au contenu</a>
+<a class="evitement" href="#contenu"><?= e(t('Aller au contenu')) ?></a>
 <?php partiel('entete', ['page' => $page ?? '']) ?>
 <main id="contenu">
 <?= $contenu ?>
