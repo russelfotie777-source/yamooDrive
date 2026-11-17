@@ -12,6 +12,9 @@ $scripts ??= [];
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title><?= e($titreComplet) ?></title>
 <meta name="description" content="<?= e($description) ?>">
+<?php if (in_array($page ?? '', ['reserver', 'paiement', 'reservation'], true)): ?>
+<meta name="robots" content="noindex">
+<?php endif ?>
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0a0f24" media="(prefers-color-scheme: dark)">
 <meta property="og:type" content="website">
