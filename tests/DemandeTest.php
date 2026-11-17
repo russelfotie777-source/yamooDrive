@@ -44,6 +44,14 @@ final class DemandeTest extends TestCase
         $this->assertFalse($d->aDesDates());
     }
 
+    public function testRefuseLesDatesImpossibles(): void
+    {
+        $d = Demande::depuis(['debut' => '2027-02-30T09:00', 'fin_date' => '2027-03-02', 'fin_heure' => '25:70']);
+
+        $this->assertNull($d->debut);
+        $this->assertNull($d->fin);
+    }
+
     public function testLieuInconnuRemplaceParLAgenceDeDouala(): void
     {
         $d = Demande::depuis(['lieu' => 'garoua-agence', 'lieu_retour' => 'nulle-part']);

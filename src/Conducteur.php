@@ -21,7 +21,9 @@ final class Conducteur
         if (!$saisie || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $saisie)) {
             return null;
         }
-        return DateTimeImmutable::createFromFormat('!Y-m-d', $saisie, new DateTimeZone(config('fuseau'))) ?: null;
+        $date = DateTimeImmutable::createFromFormat('!Y-m-d', $saisie, new DateTimeZone(config('fuseau')));
+        // Un 30 février deviendrait un 2 mars : on le refuse.
+        return $date && $date->format('Y-m-d') === $saisie ? $date : null;
     }
 
     /** @return array<string, string> erreurs par champ */

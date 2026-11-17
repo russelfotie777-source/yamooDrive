@@ -31,6 +31,13 @@ final class ConducteurTest extends TestCase
         $this->assertNull(Conducteur::date('1998-7-14'));
     }
 
+    public function testRefuseUneDateImpossible(): void
+    {
+        $this->assertNull(Conducteur::date('1998-02-30'));
+        $this->assertNull(Conducteur::date('1998-13-01'));
+        $this->assertNotNull(Conducteur::date('2000-02-29'));
+    }
+
     public function testConducteurQuiRemplitLesConditions(): void
     {
         $depart = $this->depart();
