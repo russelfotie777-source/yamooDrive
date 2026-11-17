@@ -374,6 +374,32 @@ final class Pages
         vue('credits', ['titre' => t('Crédits photos'), 'page' => 'credits']);
     }
 
+    // Les moteurs de recherche ne lisent robots.txt et sitemap.xml qu'à la racine du site.
+    public static function robots(): void
+    {
+        if (Langue::$code !== 'fr') {
+            self::introuvable();
+        }
+        header('Content-Type: text/plain; charset=utf-8');
+        header('Cache-Control: public, max-age=86400');
+        echo PlanDuSite::robots(self::racine(), base());
+    }
+
+    public static function planDuSite(): void
+    {
+        if (Langue::$code !== 'fr') {
+            self::introuvable();
+        }
+        header('Content-Type: application/xml; charset=utf-8');
+        header('Cache-Control: public, max-age=86400');
+        echo PlanDuSite::xml(self::racine());
+    }
+
+    private static function racine(): string
+    {
+        return rtrim(url_absolue('/'), '/');
+    }
+
     public static function apiAssistant(): void
     {
         if (!hash_equals(csrf(), (string) ($_SERVER['HTTP_X_CSRF'] ?? ''))) {
