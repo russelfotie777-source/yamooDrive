@@ -14,6 +14,17 @@ php -S 127.0.0.1:8080 index.php
 
 Sous XAMPP, le dossier fonctionne tel quel à l’adresse `http://localhost/Yamoodrive/` (le fichier `.htaccess` envoie tout vers `index.php` et bloque `config/`, `src/`, `vues/`, `stockage/` et `.env`). La base `stockage/yamoo.sqlite` se crée au premier appel ; `stockage/` doit rester inscriptible par Apache.
 
+## Tests
+
+```sh
+composer install
+composer test
+```
+
+Les tests de `tests/` couvrent le devis, la lecture d’une demande, les contrôles du conducteur et les disponibilités. Ils travaillent sur une base SQLite jetable créée dans le dossier temporaire, jamais sur `stockage/yamoo.sqlite`. Il faut les extensions `intl` et `pdo_sqlite` ; sans `pdo_sqlite`, les tests de disponibilité sont sautés. Sous XAMPP : `/opt/lampp/bin/php vendor/bin/phpunit`.
+
+Les montants sont lus dans `config/` : les tests restent justes quand la vraie grille tarifaire remplace les prix provisoires.
+
 ## Langues
 
 Six langues : français à la racine, anglais `/en/`, espagnol `/es/`, allemand `/de/`, chinois simplifié `/zh/`, arabe `/ar/` (mise en page de droite à gauche). Le choix se fait dans l’en-tête et garde la page et ses paramètres.
@@ -30,6 +41,7 @@ Les traductions chinoises et arabes gagneraient à être relues par une personne
 | `PAIEMENT_FOURNISSEUR` | `demo` simule MTN et Orange Money (aucun débit ; un numéro qui finit par `000` simule un refus). `notchpay` encaisse pour de vrai. |
 | `NOTCHPAY_CLE_PUBLIQUE`, `NOTCHPAY_HASH_WEBHOOK` | Compte Notch Pay. Déclarer le webhook `https://<domaine>/api/notchpay`. |
 | `ADMIN_MOT_DE_PASSE` | Ouvre l’espace équipe `/equipe`. Vide : espace fermé. |
+| `BASE_SQLITE` | Autre fichier de base que `stockage/yamoo.sqlite`. Les tests s’en servent. |
 
 ## À valider par Yamoo Drive avant la mise en ligne
 
@@ -59,4 +71,5 @@ vues/                gabarits PHP
 langues/             traductions (anglais, espagnol, allemand, chinois, arabe)
 assets/              CSS, JS, images, polices Figtree et Noto Sans Arabic (OFL)
 stockage/            base SQLite et pièces des conducteurs (hors du web)
+tests/               tests PHPUnit
 ```

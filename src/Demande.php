@@ -51,8 +51,10 @@ final class Demande
         if (!is_string($brut) || !preg_match('/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}$/', $brut)) {
             return null;
         }
-        $date = DateTimeImmutable::createFromFormat('Y-m-d H:i', str_replace('T', ' ', $brut), new DateTimeZone(config('fuseau')));
-        return $date ?: null;
+        $brut = str_replace('T', ' ', $brut);
+        $date = DateTimeImmutable::createFromFormat('Y-m-d H:i', $brut, new DateTimeZone(config('fuseau')));
+        // PHP décale une date impossible (30 février, 25 h 70) au lieu de la refuser.
+        return $date && $date->format('Y-m-d H:i') === $brut ? $date : null;
     }
 
     public function aDesDates(): bool

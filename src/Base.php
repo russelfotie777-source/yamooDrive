@@ -11,7 +11,8 @@ final class Base
     public static function pdo(): PDO
     {
         if (self::$pdo === null) {
-            $chemin = dirname(__DIR__) . '/stockage/yamoo.sqlite';
+            // BASE_SQLITE désigne un autre fichier : les tests travaillent sur une base jetable.
+            $chemin = env('BASE_SQLITE') ?? dirname(__DIR__) . '/stockage/yamoo.sqlite';
             $nouvelle = !is_file($chemin);
             self::$pdo = new PDO('sqlite:' . $chemin, null, null, [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,

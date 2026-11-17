@@ -7,6 +7,9 @@
         "anthropic-ai/sdk": "^1.0",
         "guzzlehttp/guzzle": "^7.9"
     },
+    "require-dev": {
+        "phpunit/phpunit": "^11.5"
+    },
     "config": {
         "platform": {
             "php": "8.2.12"
@@ -21,5 +24,13 @@
         "files": [
             "src/fonctions.php"
         ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Yamoo\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
     }
 }
