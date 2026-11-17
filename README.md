@@ -21,7 +21,7 @@ composer install
 composer test
 ```
 
-Les tests de `tests/` couvrent le devis, la lecture d’une demande, les contrôles du conducteur et les disponibilités. Ils travaillent sur une base SQLite jetable créée dans le dossier temporaire, jamais sur `stockage/yamoo.sqlite`. Il faut les extensions `intl` et `pdo_sqlite` ; sans `pdo_sqlite`, les tests de disponibilité sont sautés. Sous XAMPP : `/opt/lampp/bin/php vendor/bin/phpunit`.
+Les tests de `tests/` couvrent le devis, la lecture d’une demande, les contrôles du conducteur, les disponibilités, les traductions et les formats de chaque langue. Ils travaillent sur une base SQLite jetable créée dans le dossier temporaire, jamais sur `stockage/yamoo.sqlite`. Il faut les extensions `intl` et `pdo_sqlite` ; sans `pdo_sqlite`, les tests de disponibilité sont sautés. Sous XAMPP : `/opt/lampp/bin/php vendor/bin/phpunit`.
 
 Les montants sont lus dans `config/` : les tests restent justes quand la vraie grille tarifaire remplace les prix provisoires.
 
@@ -29,7 +29,7 @@ Les montants sont lus dans `config/` : les tests restent justes quand la vraie g
 
 Six langues : français à la racine, anglais `/en/`, espagnol `/es/`, allemand `/de/`, chinois simplifié `/zh/`, arabe `/ar/` (mise en page de droite à gauche). Le choix se fait dans l’en-tête et garde la page et ses paramètres.
 
-Les textes sont écrits en français dans le code (`t('…')`) et traduits dans `langues/textes.php`, une ligne par texte avec ses cinq traductions. Les nombres, les dates et les pluriels suivent les règles de chaque langue (ICU). Pour repérer un texte oublié, lancer le serveur avec `RELEVE_TRADUCTIONS=/tmp/releve.jsonl` et parcourir le site : chaque texte sans traduction y est noté.
+Les textes sont écrits en français dans le code (`t('…')`) et traduits dans `langues/textes.php`, une ligne par texte avec ses cinq traductions. Les nombres, les dates et les pluriels suivent les règles de chaque langue (ICU). `composer test` signale un texte du code ou de `config/` sans traduction, une traduction qui perd un paramètre (`{prix}`, `{n, plural, …}`), une forme ICU cassée ou une clé écrite deux fois. Pour les textes construits à la volée, lancer le serveur avec `RELEVE_TRADUCTIONS=/tmp/releve.jsonl` et parcourir le site : chaque texte sans traduction y est noté.
 
 Les traductions chinoises et arabes gagneraient à être relues par une personne de langue maternelle avant la mise en ligne. L’espace équipe reste en français ; il indique la langue dans laquelle chaque client a réservé.
 
