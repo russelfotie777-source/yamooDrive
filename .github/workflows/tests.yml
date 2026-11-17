@@ -1,0 +1,44 @@
+# Relit la syntaxe et lance les tests à chaque push sur main et à chaque PR.
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 8.2 : la version de XAMPP et du serveur ; 8.4 : la plus récente.
+        php: ['8.2', '8.4']
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: intl, pdo_sqlite, fileinfo
+          coverage: none
+
+      - name: Dépendances
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Syntaxe PHP
+        run: find . -path ./vendor -prune -o -name '*.php' -print0 | xargs -0 -n1 php -l > /dev/null
+
+      - name: Syntaxe JavaScript
+        run: for f in assets/js/*.js; do node --check "$f"; done
+
+      - name: Tests
+        run: vendor/bin/phpunit

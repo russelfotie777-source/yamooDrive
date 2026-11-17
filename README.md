@@ -25,6 +25,8 @@ Les tests de `tests/` couvrent le devis, la lecture d’une demande, les contrô
 
 Les montants sont lus dans `config/` : les tests restent justes quand la vraie grille tarifaire remplace les prix provisoires.
 
+Sur GitHub, chaque PR et chaque push sur `main` relancent la syntaxe PHP et JavaScript puis les tests, avec PHP 8.2 et 8.4 (`.github/workflows/tests.yml`). Une PR dont la vérification est rouge ne se fusionne pas.
+
 ## Langues
 
 Six langues : français à la racine, anglais `/en/`, espagnol `/es/`, allemand `/de/`, chinois simplifié `/zh/`, arabe `/ar/` (mise en page de droite à gauche). Le choix se fait dans l’en-tête et garde la page et ses paramètres.
