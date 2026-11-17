@@ -3,3 +3,4 @@
 /stockage/*.sqlite*
 /stockage/pieces/*
 !/stockage/.htaccess
+/.phpunit.cache/

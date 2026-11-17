@@ -4,8 +4,8 @@ DirectoryIndex index.php
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteRule ^(config|src|vues|stockage|vendor)(/|$) - [F,L]
-  RewriteRule ^(\.env.*|composer\.(json|lock)|README\.md)$ - [F,L]
+  RewriteRule ^(config|src|vues|stockage|vendor|tests)(/|$) - [F,L]
+  RewriteRule ^(\.env.*|composer\.(json|lock)|phpunit\.xml|README\.md)$ - [F,L]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteRule ^ index.php [QSA,L]
 </IfModule>
