@@ -3,12 +3,14 @@
 namespace Yamoo\Tests;
 
 use DateTimeImmutable;
+use PHPUnit\Framework\Attributes\RequiresPhpExtension;
 use PHPUnit\Framework\TestCase;
 use Yamoo\Base;
 use Yamoo\Disponibilite;
 use Yamoo\Flotte;
 
 // Base jetable créée par tests/bootstrap.php (BASE_SQLITE), vidée avant chaque test.
+#[RequiresPhpExtension('pdo_sqlite')]
 final class DisponibiliteTest extends TestCase
 {
     private array $v;
