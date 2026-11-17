@@ -44,6 +44,8 @@ $routes = [
     ['POST', '#^/reservation/(YD-[A-Z0-9]{6})/annuler$#', [Pages::class, 'annuler']],
     ['GET', '#^/conditions$#', [Pages::class, 'conditions']],
     ['GET', '#^/credits$#', [Pages::class, 'credits']],
+    ['GET', '#^/robots\.txt$#', [Pages::class, 'robots']],
+    ['GET', '#^/sitemap\.xml$#', [Pages::class, 'planDuSite']],
     ['POST', '#^/api/assistant$#', [Pages::class, 'apiAssistant']],
     ['GET', '#^/api/devis$#', [Pages::class, 'apiDevis']],
     ['GET', '#^/api/paiement/(YD-[A-Z0-9]{6})$#', [Pages::class, 'apiPaiement']],
