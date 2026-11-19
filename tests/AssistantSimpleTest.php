@@ -58,6 +58,17 @@ final class AssistantSimpleTest extends TestCase
         $this->assertStringStartsWith("Pour $samedi", $this->reponse('Un SUV libre samedi ?'));
     }
 
+    public function testGutenMorgenEstUneSalutation(): void
+    {
+        $this->assertStringStartsWith('Bonjour. Je peux vous montrer', $this->reponse('Guten Morgen!'));
+    }
+
+    public function testGutenMorgenNePorteSurAucuneDate(): void
+    {
+        $this->assertStringNotContainsString('demain', $this->reponse('Guten Morgen, welche Autos haben Sie?'));
+        $this->assertStringStartsWith('Pour demain', $this->reponse('Guten Morgen, welche Autos sind morgen frei?'));
+    }
+
     private function reponse(string $question): string
     {
         return (new Simple())->reponds([['role' => 'user', 'texte' => $question]])['texte'];
