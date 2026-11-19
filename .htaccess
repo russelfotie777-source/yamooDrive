@@ -4,7 +4,10 @@ DirectoryIndex index.php
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteRule ^(config|src|vues|stockage|vendor|tests)(/|$) - [F,L]
+  # Fichiers cachés (.git, .github, .gitignore, .phpunit.cache) : jamais servis.
+  # .well-known reste ouvert pour la validation des certificats HTTPS.
+  RewriteRule (^|/)\.(?!well-known(/|$)) - [F,L]
+  RewriteRule ^(config|src|vues|langues|stockage|vendor|tests)(/|$) - [F,L]
   RewriteRule ^(\.env.*|composer\.(json|lock)|phpunit\.xml|README\.md)$ - [F,L]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteRule ^ index.php [QSA,L]

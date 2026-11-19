@@ -12,7 +12,9 @@ cp .env.exemple .env        # puis remplir
 php -S 127.0.0.1:8080 index.php
 ```
 
-Sous XAMPP, le dossier fonctionne tel quel à l’adresse `http://localhost/Yamoodrive/` (le fichier `.htaccess` envoie tout vers `index.php` et bloque `config/`, `src/`, `vues/`, `stockage/` et `.env`). La base `stockage/yamoo.sqlite` se crée au premier appel ; `stockage/` doit rester inscriptible par Apache.
+Sous XAMPP, le dossier fonctionne tel quel à l’adresse `http://localhost/Yamoodrive/` (le fichier `.htaccess` envoie tout vers `index.php` et bloque `config/`, `src/`, `vues/`, `langues/`, `stockage/`, `.env`, `.git` et les autres fichiers cachés, sauf `.well-known`). La base `stockage/yamoo.sqlite` se crée au premier appel ; `stockage/` doit rester inscriptible par Apache.
+
+Le serveur de développement (`php -S`) ne sert lui-même que `assets/` ; toute autre adresse passe par les routes, si bien que `.env`, `.git` et la base ne sortent pas non plus.
 
 ## Tests
 
@@ -21,7 +23,7 @@ composer install
 composer test
 ```
 
-Les tests de `tests/` couvrent le devis, la lecture d’une demande, les contrôles du conducteur, les disponibilités, les traductions, les formats de chaque langue et le plan du site. Ils travaillent sur une base SQLite jetable créée dans le dossier temporaire, jamais sur `stockage/yamoo.sqlite`. Il faut les extensions `intl` et `pdo_sqlite` ; sans `pdo_sqlite`, les tests de disponibilité sont sautés. Sous XAMPP : `/opt/lampp/bin/php vendor/bin/phpunit`.
+Les tests de `tests/` couvrent le devis, la lecture d’une demande, les contrôles du conducteur, les disponibilités, les traductions, les formats de chaque langue, le plan du site et les fichiers que le serveur de développement accepte de servir. Ils travaillent sur une base SQLite jetable créée dans le dossier temporaire, jamais sur `stockage/yamoo.sqlite`. Il faut les extensions `intl` et `pdo_sqlite` ; sans `pdo_sqlite`, les tests de disponibilité sont sautés. Sous XAMPP : `/opt/lampp/bin/php vendor/bin/phpunit`.
 
 Les montants sont lus dans `config/` : les tests restent justes quand la vraie grille tarifaire remplace les prix provisoires.
 
