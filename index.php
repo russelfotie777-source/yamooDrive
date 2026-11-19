@@ -2,8 +2,14 @@
 // Point d'entrée unique. Sous Apache, .htaccess y renvoie toutes les adresses ;
 // en développement : php -S 127.0.0.1:8080 index.php
 
-if (PHP_SAPI === 'cli-server' && is_file($_SERVER['DOCUMENT_ROOT'] . parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH))) {
-    return false;
+// Le serveur de développement ne sert lui-même que les fichiers de assets/ : sans ce
+// filtre, il enverrait .env, .git ou la base SQLite à qui les demande.
+if (PHP_SAPI === 'cli-server') {
+    $public = realpath($_SERVER['DOCUMENT_ROOT'] . '/assets') . '/';
+    $fichier = realpath($_SERVER['DOCUMENT_ROOT'] . parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
+    if ($fichier && str_starts_with($fichier, $public) && is_file($fichier)) {
+        return false;
+    }
 }
 
 require __DIR__ . '/vendor/autoload.php';
