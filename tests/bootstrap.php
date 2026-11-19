@@ -13,6 +13,10 @@ register_shutdown_function(function () use ($base) {
     }
 });
 
+// Le paiement reste simulé quel que soit le .env local : aucun test n'appelle Notch Pay.
+putenv('PAIEMENT_FOURNISSEUR=demo');
+putenv('NOTCHPAY_HASH_WEBHOOK=hash-des-tests');
+
 $_SERVER['SCRIPT_NAME'] = '/index.php';
 $_SERVER['HTTP_HOST'] = 'localhost';
 
