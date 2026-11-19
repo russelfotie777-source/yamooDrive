@@ -41,6 +41,8 @@ final class Base
         if (!in_array('langue', $colonnes, true)) {
             self::$pdo->exec("ALTER TABLE reservations ADD COLUMN langue TEXT NOT NULL DEFAULT 'fr'");
         }
+        self::$pdo->exec('CREATE TABLE IF NOT EXISTS essais_connexion (ip TEXT NOT NULL, cree_le TEXT NOT NULL);
+            CREATE INDEX IF NOT EXISTS essais_connexion_ip ON essais_connexion (ip, cree_le);');
     }
 
     private static function cree(): void
