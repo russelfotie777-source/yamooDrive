@@ -158,6 +158,30 @@ final class Reservations
         }
     }
 
+    /**
+     * Actions de l'espace équipe permises dans l'état actuel de la réservation.
+     * La page n'affiche que celles-ci et le serveur refuse les autres.
+     * @return list<string>
+     */
+    public static function actionsEquipe(array $r): array
+    {
+        $actions = [];
+        if (in_array($r['statut'], ['demande', 'attente_paiement'], true)) {
+            $actions[] = 'confirmer';
+        }
+        if ($r['paiement_statut'] !== 'paye' && !in_array($r['statut'], ['annulee', 'expiree'], true)) {
+            $actions[] = 'payee';
+        }
+        if (in_array($r['statut'], ['demande', 'confirmee', 'attente_paiement'], true)) {
+            $actions[] = 'annuler';
+        }
+        if ($r['statut'] === 'confirmee') {
+            $actions[] = 'terminer';
+        }
+        $actions[] = 'note';
+        return $actions;
+    }
+
     public static function annulableParClient(array $r): bool
     {
         $limite = date_locale($r['debut'])->modify('-' . config('regles.annulation_gratuite_heures') . ' hours');

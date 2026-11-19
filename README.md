@@ -48,7 +48,7 @@ Les traductions chinoises et arabes gagneraient à être relues par une personne
 | `ANTHROPIC_API_KEY` | Assistant conversationnel (modèle `claude-opus-5-5`). Sans clé, l’assistant répond avec ses réponses intégrées : véhicules libres, prix, conditions, dates simples (« ce week-end », « demain », « samedi »). |
 | `PAIEMENT_FOURNISSEUR` | `demo` simule MTN et Orange Money (aucun débit ; un numéro qui finit par `000` simule un refus). `notchpay` encaisse pour de vrai. |
 | `NOTCHPAY_CLE_PUBLIQUE`, `NOTCHPAY_HASH_WEBHOOK` | Compte Notch Pay. Déclarer le webhook `https://<domaine>/api/notchpay`. |
-| `ADMIN_MOT_DE_PASSE` | Ouvre l’espace équipe `/equipe`. Vide : espace fermé. |
+| `ADMIN_MOT_DE_PASSE` | Ouvre l’espace équipe `/equipe`. Vide : espace fermé. Chaque action (confirmer, encaisser, annuler, terminer) n’est acceptée que dans l’état où la page la propose : un onglet resté ouvert ne peut pas confirmer une réservation expirée. |
 | `BASE_SQLITE` | Autre fichier de base que `stockage/yamoo.sqlite`. Les tests s’en servent. |
 
 ## À valider par Yamoo Drive avant la mise en ligne

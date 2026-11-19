@@ -2,6 +2,7 @@
 
 namespace Yamoo\Tests;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\RequiresPhpExtension;
 use PHPUnit\Framework\TestCase;
 use Yamoo\Base;
@@ -165,6 +166,26 @@ final class ReservationsTest extends TestCase
             'numero' => '+237672894084',
         ]);
         return Reservations::parCode($r['code']);
+    }
+
+    public static function actionsParStatut(): array
+    {
+        return [
+            'à confirmer' => ['demande', 'aucun', ['confirmer', 'payee', 'annuler', 'note']],
+            'en attente du paiement' => ['attente_paiement', 'en_cours', ['confirmer', 'payee', 'annuler', 'note']],
+            'confirmée et payée' => ['confirmee', 'paye', ['annuler', 'terminer', 'note']],
+            'confirmée, à payer' => ['confirmee', 'aucun', ['payee', 'annuler', 'terminer', 'note']],
+            'terminée, à payer' => ['terminee', 'aucun', ['payee', 'note']],
+            'expirée' => ['expiree', 'echec', ['note']],
+            'payée trop tard' => ['expiree', 'paye', ['note']],
+            'annulée' => ['annulee', 'aucun', ['note']],
+        ];
+    }
+
+    #[DataProvider('actionsParStatut')]
+    public function testActionsDeLEquipeSelonLEtat(string $statut, string $paiement, array $attendues): void
+    {
+        $this->assertSame($attendues, Reservations::actionsEquipe(['statut' => $statut, 'paiement_statut' => $paiement]));
     }
 
     // Délai de paiement dépassé et constaté, comme au passage suivant sur le site.
