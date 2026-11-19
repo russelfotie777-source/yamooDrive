@@ -44,12 +44,19 @@ final class Admin
     public static function connexion(): void
     {
         verifie_csrf();
+        $ip = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+        if ($jusqua = Essais::bloqueJusqua($ip)) {
+            Pages::flash('Trop d’essais de mot de passe. Réessayez à ' . heure($jusqua) . '.');
+            redirige(url('/equipe'));
+        }
         $attendu = (string) config('admin.mot_de_passe');
         $saisi = (string) ($_POST['mot_de_passe'] ?? '');
         if ($attendu !== '' && hash_equals($attendu, $saisi)) {
+            Essais::reussite($ip);
             session_regenerate_id(true);
             $_SESSION['equipe'] = true;
         } else {
+            Essais::echec($ip);
             sleep(1);
             Pages::flash('Mot de passe incorrect. Vérifiez-le puis réessayez.');
         }
