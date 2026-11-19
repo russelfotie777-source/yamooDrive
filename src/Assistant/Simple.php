@@ -42,7 +42,7 @@ final class Simple
         'voyage' => ['kribi', 'limbe', 'voyage', 'interurbain', ' ouest', ' route', ' trip', 'travel', ' road', 'viaje', 'carretera', ' reise', '旅行', '长途', 'سفر'],
         'liste' => ['dispo', ' libre', 'vehicule', 'voiture', 'liste', ' quel', 'louer', 'location', 'moins cher', ' prix', 'tarif', 'combien', 'available', ' free', ' car', 'vehicle', ' list', 'which', ' rent', 'cheap', 'price', ' cost', 'how much', 'disponible', ' coche', 'alquil', 'barato', 'precio', 'cuanto', 'verfugbar', ' frei', ' auto', 'fahrzeug', ' miet', 'gunstig', 'preis', 'kostet', 'wie viel', '车', '可用', '租', '便宜', '价格', '多少', 'سيارة', 'متاح', 'متوفر', 'ايجار', 'إيجار', 'استئجار', 'سعر', ' كم'],
         'merci' => ['merci', 'thank', 'gracias', 'danke', '谢谢', 'شكرا'],
-        'bonjour' => ['bonjour', 'bonsoir', 'salut', 'hello', ' hi ', 'hola', 'hallo', 'guten tag', '你好', 'مرحبا', 'السلام'],
+        'bonjour' => ['bonjour', 'bonsoir', 'salut', 'hello', ' hi ', 'hola', 'hallo', 'guten tag', 'guten morgen', '你好', 'مرحبا', 'السلام'],
         'weekend' => ['week end', 'weekend', 'fin de semana', 'wochenende', '周末', 'نهاية الاسبوع', 'نهاية الأسبوع'],
         'demain' => ['demain', 'tomorrow', 'manana', 'morgen', '明天', 'غدا'],
     ];
@@ -174,6 +174,8 @@ final class Simple
     private static function periode(string $q): array
     {
         $m = maintenant();
+        // « Guten Morgen » salue, il ne demande pas un véhicule pour demain (« morgen »).
+        $q = str_replace(' guten morgen ', ' ', $q);
         if (self::contient($q, 'weekend')) {
             $samedi = $m->modify((int) $m->format('N') === 6 && (int) $m->format('H') < 7 ? 'today' : 'next saturday')->setTime(9, 0);
             $dimanche = $samedi->modify('+1 day')->setTime(18, 0);
