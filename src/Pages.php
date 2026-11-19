@@ -315,7 +315,7 @@ final class Pages
     {
         $r = Reservations::pourClient($code, $_GET['j'] ?? null) ?? self::introuvable();
         Reservations::expire();
-        $r = Reservations::parCode($code);
+        $r = Paiement::verifie(Reservations::parCode($code));
         if ($r['statut'] === 'attente_paiement') {
             redirige(url('/paiement/' . $code, ['j' => $r['jeton']]));
         }
