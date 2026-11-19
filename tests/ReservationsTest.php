@@ -88,6 +88,53 @@ final class ReservationsTest extends TestCase
         $this->assertSame('attente_paiement', Reservations::parCode($autre['code'])['statut']);
     }
 
+    public function testPaiementRecuApresLeDelaiReprendLaReservation(): void
+    {
+        $r = $this->expiree($this->enCours($this->cree(), time() - 60));
+
+        $r = Paiement::verifie($r);
+
+        $this->assertSame('confirmee', $r['statut']);
+        $this->assertSame('paye', $r['paiement_statut']);
+        $this->assertNull($r['expire_le']);
+        $this->assertStringContainsString('réservation confirmée', Reservations::journal($r['id'])[0]['detail']);
+    }
+
+    public function testPaiementRecuApresLeDelaiQuandLeVehiculeEstRepris(): void
+    {
+        $r = $this->expiree($this->enCours($this->cree(), time() - 60));
+        $suivant = $this->cree(['paiement_mode' => 'remise']);
+
+        $r = Paiement::verifie($r);
+
+        $this->assertSame('expiree', $r['statut']);
+        $this->assertSame('paye', $r['paiement_statut']);
+        $this->assertStringContainsString('remboursement à faire', Reservations::journal($r['id'])[0]['detail']);
+        $this->assertSame('demande', Reservations::parCode($suivant['code'])['statut']);
+    }
+
+    public function testDelaiDepasseSansPaiementResteExpire(): void
+    {
+        $r = $this->expiree($this->enCours($this->cree(), time()));
+
+        $r = Paiement::verifie($r);
+
+        $this->assertSame('expiree', $r['statut']);
+        $this->assertSame('echec', $r['paiement_statut']);
+    }
+
+    public function testUnPaiementTardifNEstEnregistreQuUneFois(): void
+    {
+        $r = $this->expiree($this->enCours($this->cree(), time() - 60));
+        $this->cree(['paiement_mode' => 'remise']);
+
+        Paiement::verifie($r);
+        Paiement::verifie(Reservations::parCode($r['code']));
+
+        $notes = array_filter(Reservations::journal($r['id']), fn ($j) => str_contains($j['detail'], 'après le délai'));
+        $this->assertCount(1, $notes);
+    }
+
     public function testAnnulationGratuiteJusquA24HeuresAvantLeDepart(): void
     {
         $heures = config('regles.annulation_gratuite_heures');
@@ -117,6 +164,14 @@ final class ReservationsTest extends TestCase
             'operateur' => 'mtn',
             'numero' => '+237672894084',
         ]);
+        return Reservations::parCode($r['code']);
+    }
+
+    // Délai de paiement dépassé et constaté, comme au passage suivant sur le site.
+    private function expiree(array $r): array
+    {
+        Reservations::maj($r['id'], ['expire_le' => maintenant()->modify('-1 minute')->format('Y-m-d H:i')]);
+        Reservations::expire();
         return Reservations::parCode($r['code']);
     }
 
