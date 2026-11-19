@@ -67,6 +67,7 @@ final class Admin
     public static function reservation(string $code): void
     {
         self::exigeConnexion();
+        Reservations::expire();
         $r = Reservations::parCode($code);
         if (!$r) {
             redirige(url('/equipe'));
@@ -76,19 +77,35 @@ final class Admin
             'page' => 'equipe',
             'r' => $r,
             'journal' => Reservations::journal($r['id']),
+            'actions' => Reservations::actionsEquipe($r),
             'flash' => Pages::flash(),
+            'erreur' => self::erreur(),
         ], 'admin/gabarit');
+    }
+
+    private static function erreur(): ?string
+    {
+        $m = $_SESSION['erreur_equipe'] ?? null;
+        unset($_SESSION['erreur_equipe']);
+        return $m;
     }
 
     public static function action(string $code): void
     {
         self::exigeConnexion();
         verifie_csrf();
+        Reservations::expire();
         $r = Reservations::parCode($code);
         if (!$r) {
             redirige(url('/equipe'));
         }
         $action = $_POST['action'] ?? '';
+        // Une page restée ouverte peut proposer une action dépassée : confirmer une
+        // réservation expirée dont le véhicule a été repris ferait une double location.
+        if (!in_array($action, Reservations::actionsEquipe($r), true)) {
+            $_SESSION['erreur_equipe'] = 'Rien n’a été modifié : la réservation est passée à « ' . Reservations::STATUTS[$r['statut']] . ' » entre-temps.';
+            redirige(url('/equipe/reservations/' . $code));
+        }
         switch ($action) {
             case 'confirmer':
                 Reservations::maj($r['id'], ['statut' => 'confirmee', 'expire_le' => null], 'Réservation confirmée par l’équipe.');

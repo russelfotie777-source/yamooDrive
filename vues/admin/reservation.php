@@ -11,17 +11,18 @@ $anciennete = !empty($conducteur['permis']) ? date_locale($conducteur['permis'])
 <div class="outil-entete">
   <h1 class="outil-titre"><span class="code"><?= e($r['code']) ?></span> <span class="statut statut-<?= e($r['statut']) ?>"><?= e(Reservations::STATUTS[$r['statut']]) ?></span></h1>
   <div class="actions">
-    <?php if (in_array($r['statut'], ['demande', 'attente_paiement'], true)): ?>
+    <?php if (in_array('confirmer', $actions, true)): ?>
       <form method="post"><?= champ_csrf() ?><button class="bouton bouton-petit bouton-plein" name="action" value="confirmer">Confirmer</button></form>
     <?php endif ?>
-    <?php if ($r['paiement_statut'] !== 'paye' && !in_array($r['statut'], ['annulee', 'expiree'], true)): ?>
+    <?php if (in_array('payee', $actions, true)): ?>
       <form method="post"><?= champ_csrf() ?><button class="bouton bouton-petit bouton-contour" name="action" value="payee">Marquer comme payée</button></form>
     <?php endif ?>
-    <?php if (in_array($r['statut'], ['demande', 'confirmee', 'attente_paiement'], true)): ?>
+    <?php if (in_array('annuler', $actions, true)): ?>
       <form method="post" data-confirmer="Annuler la réservation <?= e($r['code']) ?> ?"><?= champ_csrf() ?><button class="bouton bouton-petit bouton-danger" name="action" value="annuler">Annuler</button></form>
     <?php endif ?>
   </div>
 </div>
+<?php if ($erreur): ?><p class="message message-erreur" role="alert"><?= icone('info') ?><?= e($erreur) ?></p><?php endif ?>
 <?php if ($flash): ?><p class="message message-succes" role="status"><?= icone('check') ?><?= e($flash) ?></p><?php endif ?>
 
 <div class="outil-grille">
@@ -73,7 +74,7 @@ $anciennete = !empty($conducteur['permis']) ? date_locale($conducteur['permis'])
       </section>
     <?php endif ?>
 
-    <?php if ($r['statut'] === 'confirmee'): ?>
+    <?php if (in_array('terminer', $actions, true)): ?>
       <section class="panneau">
         <h2 class="panneau-titre">Retour du véhicule</h2>
         <form method="post" class="formulaire-court">
