@@ -3,6 +3,8 @@
 namespace Yamoo\Paiement;
 
 use Throwable;
+use Yamoo\Base;
+use Yamoo\Disponibilite;
 use Yamoo\Reservations;
 
 final class Paiement
@@ -36,7 +38,10 @@ final class Paiement
     // Interroge le fournisseur et met la réservation à jour. Retourne la réservation relue.
     public static function verifie(array $r): array
     {
-        if ($r['statut'] !== 'attente_paiement' || !$r['paiement_reference']) {
+        // Un client qui valide sur son téléphone juste avant la fin du délai peut n'être
+        // confirmé par le fournisseur qu'après l'expiration : on interroge encore.
+        $tardif = $r['statut'] === 'expiree' && $r['paiement_mode'] === 'mobile' && $r['paiement_statut'] !== 'paye';
+        if (($r['statut'] !== 'attente_paiement' && !$tardif) || !$r['paiement_reference']) {
             return $r;
         }
         try {
@@ -44,11 +49,29 @@ final class Paiement
         } catch (Throwable) {
             return $r;
         }
+        if ($tardif) {
+            return $etat === 'paye' ? self::recuApresDelai($r) : $r;
+        }
         if ($etat === 'paye') {
             Reservations::maj($r['id'], ['paiement_statut' => 'paye', 'statut' => 'confirmee', 'expire_le' => null], 'Paiement reçu : ' . fcfa($r['total']) . '.', 'paiement');
         } elseif ($etat === 'echec') {
             Reservations::maj($r['id'], ['paiement_statut' => 'echec'], 'Paiement refusé ou annulé sur le téléphone.', 'paiement');
         }
+        return Reservations::parCode($r['code']);
+    }
+
+    // L'argent est arrivé alors que le véhicule était libéré : la réservation reprend si
+    // personne ne l'a pris entre-temps, sinon l'équipe doit rembourser.
+    private static function recuApresDelai(array $r): array
+    {
+        $pdo = Base::pdo();
+        $pdo->exec('BEGIN IMMEDIATE');
+        if ($r['v'] && Disponibilite::estLibre($r['v'], date_locale($r['debut']), date_locale($r['fin']), $r['id'])) {
+            Reservations::maj($r['id'], ['paiement_statut' => 'paye', 'statut' => 'confirmee', 'expire_le' => null], 'Paiement reçu après le délai : ' . fcfa($r['total']) . '. Véhicule encore libre, réservation confirmée.', 'paiement');
+        } else {
+            Reservations::maj($r['id'], ['paiement_statut' => 'paye'], 'Paiement reçu après le délai : ' . fcfa($r['total']) . '. Le véhicule a été réservé entre-temps : remboursement à faire.', 'paiement');
+        }
+        $pdo->exec('COMMIT');
         return Reservations::parCode($r['code']);
     }
 }

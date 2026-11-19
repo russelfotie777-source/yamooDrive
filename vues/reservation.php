@@ -8,7 +8,9 @@ $etats = [
     'confirmee' => ['succes', 'check', t('Réservation confirmée'), $r['paiement_statut'] === 'paye' ? t('Paiement de {montant} reçu. Votre véhicule vous attend.', $montant) : t('L’équipe a confirmé votre réservation. Vous payez à la remise des clés.')],
     'demande' => ['info', 'horloge', t('Demande envoyée'), t('Le véhicule vous est réservé. L’équipe confirme sur WhatsApp et vous payez à la remise des clés.')],
     'annulee' => ['neutre', 'fermer', t('Réservation annulée'), $r['paiement_statut'] === 'paye' ? t('Votre paiement de {montant} vous sera remboursé par l’équipe.', $montant) : t('Aucun montant ne vous sera demandé.')],
-    'expiree' => ['neutre', 'horloge', t('Paiement non reçu'), t('Le délai de paiement est dépassé et le véhicule a été libéré. Vous pouvez refaire une réservation.')],
+    'expiree' => $r['paiement_statut'] === 'paye'
+        ? ['neutre', 'horloge', t('Paiement arrivé trop tard'), t('Un autre client a réservé le véhicule avant l’arrivée de votre paiement de {montant}. L’équipe vous le rembourse.', $montant)]
+        : ['neutre', 'horloge', t('Paiement non reçu'), t('Le délai de paiement est dépassé et le véhicule a été libéré. Vous pouvez refaire une réservation.')],
     'terminee' => ['neutre', 'check', t('Location terminée'), t('Merci d’avoir roulé avec Yamoo Drive.')],
 ];
 [$ton, $ic, $titreEtat, $texteEtat] = $etats[$r['statut']] ?? $etats['demande'];
