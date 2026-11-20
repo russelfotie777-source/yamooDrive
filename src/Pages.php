@@ -330,24 +330,9 @@ final class Pages
     public static function agenda(string $code): void
     {
         $r = Reservations::pourClient($code, $_GET['j'] ?? null) ?? self::introuvable();
-        $utc = new \DateTimeZone('UTC');
-        $f = fn (string $d) => date_locale($d)->setTimezone($utc)->format('Ymd\THis\Z');
-        $echappe = fn (string $t) => addcslashes($t, ",;\\");
-        $lignes = [
-            'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Yamoo Drive//Reservation//FR', 'CALSCALE:GREGORIAN',
-            'BEGIN:VEVENT',
-            'UID:' . $r['code'] . '@yamoodrive.com',
-            'DTSTAMP:' . gmdate('Ymd\THis\Z'),
-            'DTSTART:' . $f($r['debut']),
-            'DTEND:' . $f($r['fin']),
-            'SUMMARY:' . $echappe(t('Location {nom}', ['nom' => $r['v']['nom']]) . ' – Yamoo Drive'),
-            'LOCATION:' . $echappe(lieu($r['lieu_depart'])),
-            'DESCRIPTION:' . $echappe(t('Réservation {code}', ['code' => $r['code']]) . '. ' . t('Total') . ' ' . fcfa($r['total']) . '. WhatsApp ' . config('contact.telephone_affiche')),
-            'END:VEVENT', 'END:VCALENDAR',
-        ];
         header('Content-Type: text/calendar; charset=utf-8');
         header('Content-Disposition: attachment; filename="yamoo-drive-' . $r['code'] . '.ics"');
-        echo implode("\r\n", $lignes) . "\r\n";
+        echo Agenda::ics($r);
     }
 
     public static function annuler(string $code): void
