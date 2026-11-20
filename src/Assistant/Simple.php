@@ -143,7 +143,11 @@ final class Simple
             return $a(t('Le siège est à **Douala, Logpom, carrefour Adem**. Nous sommes aussi à Yaoundé et à Bafoussam, et nous livrons aux aéroports de Douala et de Nsimalen. Vous pouvez rendre le véhicule dans une autre ville : des frais de rapatriement s’ajoutent au prix.'));
         }
         if ($debut) {
-            $libres = $outils->chercher(['formule' => $formule, 'places_min' => $places, 'lieu' => $lieu, 'debut' => $debut, 'fin' => $fin])['libres'];
+            $res = $outils->chercher(['formule' => $formule, 'places_min' => $places, 'lieu' => $lieu, 'debut' => $debut, 'fin' => $fin]);
+            if (isset($res['erreur_dates'])) {
+                return $a($res['erreur_dates']);
+            }
+            $libres = $res['libres'];
             if (!$libres) {
                 return $a(t('Aucun véhicule n’est libre {quand}. Essayez d’autres dates ou écrivez-nous sur WhatsApp au {numero}.', ['quand' => $quand, 'numero' => $tel]));
             }

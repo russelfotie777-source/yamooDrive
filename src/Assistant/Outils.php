@@ -23,7 +23,7 @@ final class Outils
         return [
             [
                 'name' => 'chercher_vehicules',
-                'description' => 'Liste les véhicules de la flotte avec leur prix par jour. Avec des dates, indique aussi la disponibilité et le total. À utiliser pour « quels véhicules sont libres », « un 7 places », « le moins cher », etc.',
+                'description' => 'Liste les véhicules de la flotte avec leur prix par jour. Avec des dates, indique aussi la disponibilité et le total ; si les dates ne conviennent pas, erreur_dates dit quoi corriger et aucune disponibilité n’est donnée. À utiliser pour « quels véhicules sont libres », « un 7 places », « le moins cher », etc.',
                 'inputSchema' => [
                     'type' => 'object',
                     'properties' => [
@@ -97,6 +97,14 @@ final class Outils
         $categorie = isset(config('categories')[$e['categorie'] ?? '']) ? $e['categorie'] : null;
         $liste = Flotte::filtre($categorie, $formule, (int) ($e['places_min'] ?? 0));
         $d = Demande::depuis(['lieu' => $e['lieu'] ?? null, 'debut' => $e['debut'] ?? null, 'fin' => $e['fin'] ?? null, 'formule' => $formule]);
+        // Une date passée, trop proche ou sans retour ne donne aucune disponibilité :
+        // le modèle reçoit la raison au lieu d'une liste de véhicules « libres ».
+        $erreurDates = null;
+        $avecDates = false;
+        if (!empty($e['debut']) || !empty($e['fin'])) {
+            $avecDates = $d->valideDates();
+            $erreurDates = $avecDates ? null : implode(' ', $d->erreurs);
+        }
         $resultats = [];
         $this->cartes = [];
         foreach ($liste as $v) {
@@ -105,7 +113,7 @@ final class Outils
                 $ligne['prix_par_jour_' . $f . '_chauffeur'] = fcfa($prix);
             }
             $carte = Carte::depuis($v, $formule);
-            if ($d->aDesDates() && $d->fin > $d->debut) {
+            if ($avecDates) {
                 $libre = Disponibilite::estLibre($v, $d->debut, $d->fin);
                 $ligne['disponible'] = $libre;
                 if (!$libre && ($a = Disponibilite::libreA($v, $d->debut, $d->fin))) {
@@ -119,8 +127,14 @@ final class Outils
         // Les véhicules libres d'abord, puis du moins cher au plus cher.
         usort($this->cartes, fn ($a, $b) => [!$a['disponible'], $a['prix_brut']] <=> [!$b['disponible'], $b['prix_brut']]);
         $this->cartes = array_slice($this->cartes, 0, 6);
-        $libres = count(array_filter($resultats, fn ($l) => $l['disponible'] ?? true));
-        return ['nombre' => count($resultats), 'libres' => $libres, 'vehicules' => $resultats];
+        $reponse = ['nombre' => count($resultats)];
+        if ($avecDates) {
+            $reponse['libres'] = count(array_filter($resultats, fn ($l) => $l['disponible']));
+        }
+        if ($erreurDates) {
+            $reponse['erreur_dates'] = $erreurDates;
+        }
+        return $reponse + ['vehicules' => $resultats];
     }
 
     public function fiche(array $e): array

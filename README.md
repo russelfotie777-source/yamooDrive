@@ -23,7 +23,7 @@ composer install
 composer test
 ```
 
-Les tests de `tests/` couvrent les réponses intégrées de l’assistant, le devis, la lecture d’une demande, les contrôles du conducteur, les disponibilités, le paiement Mobile Money et le cycle d’une réservation, les traductions, les formats de chaque langue, le plan du site et les fichiers que le serveur de développement accepte de servir. Ils travaillent sur une base SQLite jetable créée dans le dossier temporaire, jamais sur `stockage/yamoo.sqlite`, et le paiement y reste simulé même si le `.env` local choisit Notch Pay. Il faut les extensions `intl` et `pdo_sqlite` ; sans `pdo_sqlite`, les tests de disponibilité sont sautés. Sous XAMPP : `/opt/lampp/bin/php vendor/bin/phpunit`.
+Les tests de `tests/` couvrent les réponses intégrées de l’assistant et les outils qu’il appelle avant de citer un prix ou une disponibilité, le devis, la lecture d’une demande, les contrôles du conducteur, les disponibilités, le paiement Mobile Money et le cycle d’une réservation, les traductions, les formats de chaque langue, le plan du site et les fichiers que le serveur de développement accepte de servir. Ils travaillent sur une base SQLite jetable créée dans le dossier temporaire, jamais sur `stockage/yamoo.sqlite`, et le paiement y reste simulé même si le `.env` local choisit Notch Pay. Il faut les extensions `intl` et `pdo_sqlite` ; sans `pdo_sqlite`, les tests de disponibilité sont sautés. Sous XAMPP : `/opt/lampp/bin/php vendor/bin/phpunit`.
 
 Les montants sont lus dans `config/` : les tests restent justes quand la vraie grille tarifaire remplace les prix provisoires.
 
@@ -45,7 +45,7 @@ Les traductions chinoises et arabes gagneraient à être relues par une personne
 
 | Clé | Rôle |
 |---|---|
-| `ANTHROPIC_API_KEY` | Assistant conversationnel (modèle `claude-opus-5-5`). Sans clé, l’assistant répond avec ses réponses intégrées : véhicules libres, prix, conditions, dates simples (« ce week-end », « demain », « samedi »). |
+| `ANTHROPIC_API_KEY` | Assistant conversationnel (modèle `claude-opus-5-5`). Il ne donne une disponibilité que pour des dates qu’on peut réserver : un départ passé ou trop proche, un retour manquant ou avant le départ lui reviennent comme une erreur à corriger avec le client. Sans clé, l’assistant répond avec ses réponses intégrées : véhicules libres, prix, conditions, dates simples (« ce week-end », « demain », « samedi »). |
 | `PAIEMENT_FOURNISSEUR` | `demo` simule MTN et Orange Money (aucun débit ; un numéro qui finit par `000` simule un refus). `notchpay` encaisse pour de vrai. |
 | `NOTCHPAY_CLE_PUBLIQUE`, `NOTCHPAY_HASH_WEBHOOK` | Compte Notch Pay. Déclarer le webhook `https://<domaine>/api/notchpay`. |
 | `ADMIN_MOT_DE_PASSE` | Ouvre l’espace équipe `/equipe`. Vide : espace fermé. Chaque action (confirmer, encaisser, annuler, terminer) n’est acceptée que dans l’état où la page la propose : un onglet resté ouvert ne peut pas confirmer une réservation expirée. Après 5 mots de passe faux en 15 minutes, l’adresse IP attend ; derrière un proxy qui masque les adresses, toute l’équipe attend avec elle. |
