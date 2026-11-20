@@ -151,6 +151,42 @@ final class ReservationsTest extends TestCase
         $this->assertFalse(Reservations::annulableParClient($this->cree()));
     }
 
+    public static function recherchesQuiTrouvent(): array
+    {
+        return [
+            'numéro tel qu’affiché dans la liste' => ['+237 6 72 89 40 84'],
+            'numéro tel qu’écrit au Cameroun' => ['672 89 40 84'],
+            'numéro avec 00237' => ['00237 672 89 40 84'],
+            'numéro avec des points' => ['6.72.89.40.84'],
+            'fin du numéro' => ['89 40 84'],
+            'numéro collé' => ['+237672894084'],
+            'nom' => ['client de test'],
+        ];
+    }
+
+    #[DataProvider('recherchesQuiTrouvent')]
+    public function testRechercheDeLEquipe(string $recherche): void
+    {
+        $r = $this->cree();
+
+        $this->assertSame([$r['code']], array_column(Reservations::liste(null, $recherche), 'code'));
+    }
+
+    public function testRechercheParCode(): void
+    {
+        $r = $this->cree();
+
+        $this->assertSame([$r['code']], array_column(Reservations::liste(null, strtolower($r['code'])), 'code'));
+    }
+
+    public function testRechercheDUnAutreNumero(): void
+    {
+        $this->cree();
+
+        $this->assertSame([], Reservations::liste(null, '6 99 00 00 00'));
+        $this->assertSame([], Reservations::liste(null, '+33 6 72 89 40 84'));
+    }
+
     private function cree(array $extra = [], string $depart = '+3 days'): array
     {
         $debut = maintenant()->modify($depart);
