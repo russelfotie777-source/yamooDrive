@@ -110,8 +110,16 @@ final class Reservations
             $p['statut'] = $statut;
         }
         if ($recherche !== '') {
-            $sql .= ' AND (code LIKE :r OR client_nom LIKE :r OR client_telephone LIKE :r)';
+            $conditions = ['code LIKE :r', 'client_nom LIKE :r', 'client_telephone LIKE :r'];
             $p['r'] = '%' . $recherche . '%';
+            // Le numéro est gardé sans espaces (+237672894084) mais affiché et recopié
+            // avec (« +237 6 72 89 40 84 », « 672 89 40 84 », « 00237… ») : on compare les chiffres.
+            $chiffres = ltrim(preg_replace('/\D+/', '', $recherche), '0');
+            if (preg_match('/^[\d\s+().-]+$/', $recherche) && strlen($chiffres) >= 6) {
+                $conditions[] = 'client_telephone LIKE :tel';
+                $p['tel'] = '%' . $chiffres . '%';
+            }
+            $sql .= ' AND (' . implode(' OR ', $conditions) . ')';
         }
         $q = Base::pdo()->prepare($sql . ' ORDER BY debut DESC LIMIT 200');
         $q->execute($p);
