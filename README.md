@@ -23,7 +23,7 @@ composer install
 composer test
 ```
 
-Les tests de `tests/` couvrent les réponses intégrées de l’assistant et les outils qu’il appelle avant de citer un prix ou une disponibilité, le devis, la lecture d’une demande, les contrôles du conducteur, les disponibilités, le paiement Mobile Money et le cycle d’une réservation, les traductions, les formats de chaque langue, le plan du site et les fichiers que le serveur de développement accepte de servir. Ils travaillent sur une base SQLite jetable créée dans le dossier temporaire, jamais sur `stockage/yamoo.sqlite`, et le paiement y reste simulé même si le `.env` local choisit Notch Pay. Il faut les extensions `intl` et `pdo_sqlite` ; sans `pdo_sqlite`, les tests de disponibilité sont sautés. Sous XAMPP : `/opt/lampp/bin/php vendor/bin/phpunit`.
+Les tests de `tests/` couvrent les réponses intégrées de l’assistant et les outils qu’il appelle avant de citer un prix ou une disponibilité, le devis, la lecture d’une demande, les contrôles du conducteur, les disponibilités, le paiement Mobile Money et le cycle d’une réservation, le fichier agenda, les traductions, les formats de chaque langue, le plan du site et les fichiers que le serveur de développement accepte de servir. Ils travaillent sur une base SQLite jetable créée dans le dossier temporaire, jamais sur `stockage/yamoo.sqlite`, et le paiement y reste simulé même si le `.env` local choisit Notch Pay. Il faut les extensions `intl` et `pdo_sqlite` ; sans `pdo_sqlite`, les tests de disponibilité sont sautés. Sous XAMPP : `/opt/lampp/bin/php vendor/bin/phpunit`.
 
 Les montants sont lus dans `config/` : les tests restent justes quand la vraie grille tarifaire remplace les prix provisoires.
 
@@ -65,6 +65,10 @@ Seuls les tarifs planchers sont publics (30 000 FCFA par jour sans chauffeur, 40
 
 Tirées des conditions générales de yamoodrive.com : journée de 24 heures à partir de la prise en charge, une heure de tolérance au retour, aller simple avec frais de rapatriement, conducteur de 23 ans et permis de 2 ans pour la formule sans chauffeur (vérifiés au jour du départ), pièces obligatoires (CNI ou passeport, permis, justificatif de domicile), annulation gratuite jusqu’à 24 heures avant le départ. Un paiement Mobile Money non validé en 30 minutes libère le véhicule. S’il arrive quand même après ce délai, la réservation reprend si le véhicule est encore libre ; sinon elle reste expirée et le journal de l’équipe indique le remboursement à faire.
 
+## Agenda
+
+La page d’une réservation propose « Ajouter à mon agenda » : un fichier `.ics` avec le véhicule, les heures de départ et de retour, le lieu de prise en charge, le code, le total et le numéro WhatsApp. Il suit la norme iCalendar (RFC 5545) : heures en UTC, lignes de 75 octets au plus, pliées entre deux caractères pour que l’arabe, le chinois et les accents restent entiers.
+
 ## Photos
 
 Les photos des modèles viennent de Wikimedia Commons (licences CC0, CC BY-SA), détourées et avec une plaque Yamoo Drive à la place de la plaque d’origine. Les auteurs sont crédités sur `/credits`. Les photos d’intérieur du T2 et du X50 sont celles de yamoodrive.com. À remplacer par les photos de la vraie flotte dès qu’elles existent : `assets/img/flotte/<modèle>-<largeur>.avif|webp`, cadrage 4:3, fond transparent.
@@ -74,7 +78,7 @@ Les photos des modèles viennent de Wikimedia Commons (licences CC0, CC BY-SA), 
 ```
 index.php            routes
 config/              réglages, flotte
-src/                 Demande, Devis, Disponibilite, Reservations, Conducteur, Paiement/, Assistant/, Pages, Admin
+src/                 Demande, Devis, Disponibilite, Reservations, Conducteur, Agenda, Paiement/, Assistant/, Pages, Admin
 vues/                gabarits PHP
 langues/             traductions (anglais, espagnol, allemand, chinois, arabe)
 assets/              CSS, JS, images, polices Figtree et Noto Sans Arabic (OFL)
