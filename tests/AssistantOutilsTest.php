@@ -134,6 +134,44 @@ final class AssistantOutilsTest extends TestCase
         }
     }
 
+    public function testRechercheSansDatesNeDitRienDesDisponibilites(): void
+    {
+        $r = (new Outils())->execute('chercher_vehicules', ['formule' => 'sans']);
+
+        $this->assertArrayNotHasKey('libres', $r);
+        $this->assertArrayNotHasKey('erreur_dates', $r);
+        $this->assertArrayNotHasKey('disponible', $r['vehicules'][0]);
+    }
+
+    public function testRechercheSurUnDepartPasseNAnnonceAucunVehiculeLibre(): void
+    {
+        $hier = maintenant()->modify('-1 day');
+        $outils = new Outils();
+
+        $r = $outils->execute('chercher_vehicules', ['debut' => $hier->format('Y-m-d\TH:i'), 'fin' => $hier->modify('+2 days')->format('Y-m-d\TH:i')]);
+
+        $this->assertArrayNotHasKey('libres', $r);
+        $this->assertStringContainsString('au moins', $r['erreur_dates']);
+        $this->assertArrayNotHasKey('disponible', $r['vehicules'][0]);
+        $this->assertStringStartsWith('par jour', $outils->cartes[0]['unite']);
+    }
+
+    public function testRechercheAvecUnRetourAvantLeDepart(): void
+    {
+        $r = (new Outils())->execute('chercher_vehicules', $this->entree(null, '+2 days', '+0 hours'));
+
+        $this->assertArrayNotHasKey('libres', $r);
+        $this->assertSame('Le retour doit être après le départ.', $r['erreur_dates']);
+    }
+
+    public function testRechercheSansDateDeRetour(): void
+    {
+        $r = (new Outils())->execute('chercher_vehicules', ['debut' => $this->lundi->format('Y-m-d\TH:i')]);
+
+        $this->assertArrayNotHasKey('libres', $r);
+        $this->assertSame('Indiquez le jour et l’heure de retour.', $r['erreur_dates']);
+    }
+
     public function testFicheDonneLesPeriodesDejaReservees(): void
     {
         $this->bloque('toyota-prado', '+0 hours', '+3 days');
