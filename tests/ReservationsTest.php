@@ -114,6 +114,32 @@ final class ReservationsTest extends TestCase
         $this->assertSame('demande', Reservations::parCode($suivant['code'])['statut']);
     }
 
+    // Notch Pay prévient le site (webhook) alors que le délai est passé mais qu'aucune page
+    // ne l'a encore constaté : un autre client a pu réserver le véhicule libéré.
+    public function testPaiementSignaleAvantLeConstatDuDelaiQuandLeVehiculeEstRepris(): void
+    {
+        $r = $this->depasse($this->enCours($this->cree(), time() - 60));
+        $suivant = $this->cree(['paiement_mode' => 'remise']);
+
+        $r = Paiement::verifie($r);
+
+        $this->assertSame('expiree', $r['statut']);
+        $this->assertSame('paye', $r['paiement_statut']);
+        $this->assertStringContainsString('remboursement à faire', Reservations::journal($r['id'])[0]['detail']);
+        $this->assertSame('demande', Reservations::parCode($suivant['code'])['statut']);
+    }
+
+    public function testPaiementSignaleAvantLeConstatDuDelaiQuandLeVehiculeEstLibre(): void
+    {
+        $r = $this->depasse($this->enCours($this->cree(), time() - 60));
+
+        $r = Paiement::verifie($r);
+
+        $this->assertSame('confirmee', $r['statut']);
+        $this->assertSame('paye', $r['paiement_statut']);
+        $this->assertStringContainsString('après le délai', Reservations::journal($r['id'])[0]['detail']);
+    }
+
     public function testDelaiDepasseSansPaiementResteExpire(): void
     {
         $r = $this->expiree($this->enCours($this->cree(), time()));
@@ -229,6 +255,13 @@ final class ReservationsTest extends TestCase
     {
         Reservations::maj($r['id'], ['expire_le' => maintenant()->modify('-1 minute')->format('Y-m-d H:i')]);
         Reservations::expire();
+        return Reservations::parCode($r['code']);
+    }
+
+    // Délai de paiement dépassé, mais aucune page n'est passée depuis pour le constater.
+    private function depasse(array $r): array
+    {
+        Reservations::maj($r['id'], ['expire_le' => maintenant()->modify('-1 minute')->format('Y-m-d H:i')]);
         return Reservations::parCode($r['code']);
     }
 
