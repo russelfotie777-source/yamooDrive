@@ -46,4 +46,31 @@ final class ServeurTest extends TestCase
         $this->assertSame(200, $this->demande('/vehicules')[0]);
         $this->assertSame(200, $this->demande('/robots.txt')[0]);
     }
+
+    public function testCookieDeSessionChiffreDerriereUnProxyHttps(): void
+    {
+        $cookie = $this->cookieDeSession(['X-Forwarded-Proto: https']);
+
+        $this->assertMatchesRegularExpression('/;\s*secure(;|$)/i', $cookie);
+        $this->assertMatchesRegularExpression('/;\s*httponly(;|$)/i', $cookie);
+    }
+
+    // Sans HTTPS, un cookie « secure » ne reviendrait jamais : l'espace équipe et les
+    // formulaires ne marcheraient plus sur http://localhost.
+    public function testCookieDeSessionEnHttpSimple(): void
+    {
+        $cookie = $this->cookieDeSession();
+
+        $this->assertDoesNotMatchRegularExpression('/;\s*secure(;|$)/i', $cookie);
+        $this->assertMatchesRegularExpression('/;\s*httponly(;|$)/i', $cookie);
+    }
+
+    private function cookieDeSession(array $entetes = []): string
+    {
+        [$code, , $recus] = $this->demande('/vehicules', null, null, $entetes);
+        $this->assertSame(200, $code);
+        $cookies = preg_grep('/^Set-Cookie: yamoo=/i', $recus);
+        $this->assertCount(1, $cookies);
+        return reset($cookies);
+    }
 }

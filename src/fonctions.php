@@ -67,8 +67,7 @@ function url_langue(string $code, bool $absolue = false): string
     if (!$absolue) {
         return $chemin;
     }
-    $https = ($_SERVER['HTTPS'] ?? '') === 'on' || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
-    return ($https ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . $chemin;
+    return (en_https() ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . $chemin;
 }
 
 // Texte traduit. Les paramètres suivent le format des messages ICU :
@@ -100,11 +99,22 @@ function nb_jours(int $n): string
     return t('{n, plural, one {# jour} other {# jours}}', ['n' => $n]);
 }
 
+// Page servie en HTTPS : directement (Apache met HTTPS à « on », IIS le met à « off » en
+// HTTP simple) ou derrière un proxy qui chiffre à sa place et le dit par X-Forwarded-Proto.
+// Quand plusieurs proxys se suivent (« https, http »), le premier est celui du visiteur.
+function en_https(): bool
+{
+    $https = strtolower((string) ($_SERVER['HTTPS'] ?? ''));
+    if ($https !== '' && $https !== 'off') {
+        return true;
+    }
+    return strtolower(trim(explode(',', (string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''))[0])) === 'https';
+}
+
 function url_absolue(string $chemin = '/', array $params = []): string
 {
-    $https = ($_SERVER['HTTPS'] ?? '') === 'on' || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
     $hote = $_SERVER['HTTP_HOST'] ?? 'localhost';
-    return ($https ? 'https' : 'http') . '://' . $hote . url($chemin, $params);
+    return (en_https() ? 'https' : 'http') . '://' . $hote . url($chemin, $params);
 }
 
 function asset(string $chemin): string
