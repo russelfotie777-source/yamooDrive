@@ -42,11 +42,12 @@ trait AvecServeur
 
     /**
      * GET, ou POST quand un formulaire est donné. Les redirections ne sont pas suivies.
+     * @param list<string> $entetes en-têtes de plus, comme « X-Forwarded-Proto: https »
      * @return array{int, string, list<string>} code, corps, en-têtes
      */
-    private function demande(string $chemin, ?array $formulaire = null, ?string $cookie = null): array
+    private function demande(string $chemin, ?array $formulaire = null, ?string $cookie = null, array $entetes = []): array
     {
-        $http = ['ignore_errors' => true, 'timeout' => 5, 'follow_location' => 0, 'header' => []];
+        $http = ['ignore_errors' => true, 'timeout' => 5, 'follow_location' => 0, 'header' => $entetes];
         if ($cookie !== null) {
             $http['header'][] = "Cookie: $cookie";
         }
