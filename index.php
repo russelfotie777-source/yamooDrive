@@ -21,7 +21,9 @@ use Yamoo\Pages;
 date_default_timezone_set(config('fuseau'));
 ini_set('display_errors', env('APP_DEBUG') ? '1' : '0');
 
-session_set_cookie_params(['httponly' => true, 'samesite' => 'Lax', 'secure' => ($_SERVER['HTTPS'] ?? '') === 'on']);
+// En HTTPS, même quand c'est un proxy qui chiffre, le cookie de session (celui de l'espace
+// équipe compris) ne repart jamais en clair.
+session_set_cookie_params(['httponly' => true, 'samesite' => 'Lax', 'secure' => en_https()]);
 session_name('yamoo');
 session_start();
 
