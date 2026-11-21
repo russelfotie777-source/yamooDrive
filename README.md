@@ -14,6 +14,8 @@ php -S 127.0.0.1:8080 index.php
 
 Sous XAMPP, le dossier fonctionne tel quel à l’adresse `http://localhost/Yamoodrive/` (le fichier `.htaccess` envoie tout vers `index.php` et bloque `config/`, `src/`, `vues/`, `langues/`, `stockage/`, `.env`, `.git` et les autres fichiers cachés, sauf `.well-known`). La base `stockage/yamoo.sqlite` se crée au premier appel ; `stockage/` doit rester inscriptible par Apache.
 
+En ligne, derrière un proxy ou un CDN qui chiffre à la place du serveur (Cloudflare, la plupart des hébergeurs), le site lit le HTTPS dans `X-Forwarded-Proto` : les adresses absolues (plan du site, retour de Notch Pay, lien de la réservation) restent en `https://` et le cookie de session, celui de l’espace équipe compris, ne part jamais en clair. En `http://localhost`, le cookie reste utilisable.
+
 Le serveur de développement (`php -S`) ne sert lui-même que `assets/` ; toute autre adresse passe par les routes, si bien que `.env`, `.git` et la base ne sortent pas non plus.
 
 ## Tests
