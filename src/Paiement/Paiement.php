@@ -38,6 +38,14 @@ final class Paiement
     // Interroge le fournisseur et met la réservation à jour. Retourne la réservation relue.
     public static function verifie(array $r): array
     {
+        // Le webhook de Notch Pay peut arriver après la fin du délai sans qu'aucune page l'ait
+        // encore constatée : la réservation est toujours « en attente » alors que le véhicule
+        // est libre pour les autres clients depuis. On constate d'abord, pour ne confirmer
+        // qu'après avoir vérifié que personne ne l'a pris.
+        if ($r['statut'] === 'attente_paiement' && $r['expire_le'] && $r['expire_le'] <= maintenant()->format('Y-m-d H:i')) {
+            Reservations::expire();
+            $r = Reservations::parCode($r['code']);
+        }
         // Un client qui valide sur son téléphone juste avant la fin du délai peut n'être
         // confirmé par le fournisseur qu'après l'expiration : on interroge encore.
         $tardif = $r['statut'] === 'expiree' && $r['paiement_mode'] === 'mobile' && $r['paiement_statut'] !== 'paye';
