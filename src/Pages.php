@@ -290,6 +290,11 @@ final class Pages
     {
         verifie_csrf();
         $r = Reservations::pourClient($code, $_POST['j'] ?? null) ?? self::introuvable();
+        // La page a pu rester ouverte au-delà du délai pendant que le client rechargeait son
+        // compte : le véhicule est libre pour les autres depuis. Relancer ou passer à la
+        // remise des clés sans le constater le reprendrait à un client qui l'a réservé.
+        Reservations::expire();
+        $r = Reservations::parCode($code);
         if ($r['statut'] !== 'attente_paiement') {
             redirige(url('/reservation/' . $code, ['j' => $r['jeton']]));
         }
