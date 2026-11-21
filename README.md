@@ -63,7 +63,7 @@ Seuls les tarifs planchers sont publics (30 000 FCFA par jour sans chauffeur, 40
 
 ## Règles appliquées
 
-Tirées des conditions générales de yamoodrive.com : journée de 24 heures à partir de la prise en charge, une heure de tolérance au retour, aller simple avec frais de rapatriement, conducteur de 23 ans et permis de 2 ans pour la formule sans chauffeur (vérifiés au jour du départ), pièces obligatoires (CNI ou passeport, permis, justificatif de domicile), annulation gratuite jusqu’à 24 heures avant le départ. Un paiement Mobile Money non validé en 30 minutes libère le véhicule. S’il arrive quand même après ce délai, la réservation reprend si le véhicule est encore libre ; sinon elle reste expirée et le journal de l’équipe indique le remboursement à faire.
+Tirées des conditions générales de yamoodrive.com : journée de 24 heures à partir de la prise en charge, une heure de tolérance au retour, aller simple avec frais de rapatriement, conducteur de 23 ans et permis de 2 ans pour la formule sans chauffeur (vérifiés au jour du départ), pièces obligatoires (CNI ou passeport, permis, justificatif de domicile), annulation gratuite jusqu’à 24 heures avant le départ. Un paiement Mobile Money non validé en 30 minutes libère le véhicule. S’il arrive quand même après ce délai, la réservation reprend si le véhicule est encore libre ; sinon elle reste expirée et le journal de l’équipe indique le remboursement à faire. La règle vaut aussi quand Notch Pay prévient le site avant qu’une page ait constaté la fin du délai : le véhicule libéré n’est jamais rendu à un client s’il a été réservé entre-temps.
 
 ## Agenda
 
