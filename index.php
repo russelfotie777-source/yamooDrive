@@ -10,6 +10,10 @@ if (PHP_SAPI === 'cli-server') {
     if ($fichier && str_starts_with($fichier, $public) && is_file($fichier)) {
         return false;
     }
+    // Pour une adresse qui finit par une extension (agenda.ics, /en/robots.txt), ce serveur
+    // met l'adresse demandée dans SCRIPT_NAME : base() y verrait le sous-dossier du site et
+    // la route ne serait plus reconnue. Ici, le site est toujours servi depuis la racine.
+    $_SERVER['SCRIPT_NAME'] = '/index.php';
 }
 
 require __DIR__ . '/vendor/autoload.php';
