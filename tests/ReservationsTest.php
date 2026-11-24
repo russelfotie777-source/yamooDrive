@@ -162,6 +162,84 @@ final class ReservationsTest extends TestCase
         $this->assertCount(1, $notes);
     }
 
+    public static function decisionsQuiGardentLeVehicule(): array
+    {
+        return [
+            'confirmée par l’équipe' => ['confirmee'],
+            'rendue avant le paiement' => ['terminee'],
+        ];
+    }
+
+    // L'équipe confirme pendant que la demande attend sur le téléphone du client, qui la
+    // valide ensuite : sans le paiement noté, on le lui redemanderait à la remise des clés.
+    #[DataProvider('decisionsQuiGardentLeVehicule')]
+    public function testPaiementRecuApresUneDecisionDeLEquipe(string $statut): void
+    {
+        $r = $this->parLEquipe($this->enCours($this->cree(), time() - 60), $statut);
+
+        $r = Paiement::verifie($r);
+
+        $this->assertSame($statut, $r['statut']);
+        $this->assertSame('paye', $r['paiement_statut']);
+        $this->assertStringStartsWith('Paiement reçu', Reservations::journal($r['id'])[0]['detail']);
+    }
+
+    public function testPaiementRecuApresLAnnulationDeLEquipe(): void
+    {
+        $r = $this->parLEquipe($this->enCours($this->cree(), time() - 60), 'annulee');
+
+        $r = Paiement::verifie($r);
+
+        $this->assertSame('annulee', $r['statut']);
+        $this->assertSame('paye', $r['paiement_statut']);
+        $this->assertStringContainsString('Remboursement à faire', Reservations::journal($r['id'])[0]['detail']);
+    }
+
+    public function testPaiementRefuseApresLaConfirmationDeLEquipe(): void
+    {
+        $r = $this->parLEquipe($this->enCours($this->cree(['numero' => '+237672894000']), time() - 60), 'confirmee');
+
+        $r = Paiement::verifie($r);
+
+        $this->assertSame('confirmee', $r['statut']);
+        $this->assertSame('echec', $r['paiement_statut']);
+    }
+
+    public function testPaiementEnCoursApresLaConfirmationDeLEquipeNeChangeRien(): void
+    {
+        $r = $this->parLEquipe($this->enCours($this->cree(), time()), 'confirmee');
+        $notes = count(Reservations::journal($r['id']));
+
+        $r = Paiement::verifie($r);
+
+        $this->assertSame('en_cours', $r['paiement_statut']);
+        $this->assertCount($notes, Reservations::journal($r['id']));
+    }
+
+    public function testUnPaiementApresLEquipeNEstEnregistreQuUneFois(): void
+    {
+        $r = $this->parLEquipe($this->enCours($this->cree(), time() - 60), 'confirmee');
+
+        Paiement::verifie($r);
+        Paiement::verifie(Reservations::parCode($r['code']));
+
+        $notes = array_filter(Reservations::journal($r['id']), fn ($j) => str_starts_with($j['detail'], 'Paiement reçu'));
+        $this->assertCount(1, $notes);
+    }
+
+    // Après un refus, le client a choisi de payer à la remise des clés : l'ancienne demande
+    // n'est plus interrogée, même si le fournisseur finit par la donner pour payée.
+    public function testPaiementALaRemiseApresUnRefusNEstPlusInterroge(): void
+    {
+        $r = $this->enCours($this->cree(), time() - 60);
+        Reservations::maj($r['id'], ['paiement_mode' => 'remise', 'paiement_statut' => 'aucun', 'statut' => 'demande', 'expire_le' => null]);
+
+        $r = Paiement::verifie(Reservations::parCode($r['code']));
+
+        $this->assertSame('demande', $r['statut']);
+        $this->assertSame('aucun', $r['paiement_statut']);
+    }
+
     public function testAnnulationGratuiteJusquA24HeuresAvantLeDepart(): void
     {
         $heures = config('regles.annulation_gratuite_heures');
@@ -262,6 +340,13 @@ final class ReservationsTest extends TestCase
     private function depasse(array $r): array
     {
         Reservations::maj($r['id'], ['expire_le' => maintenant()->modify('-1 minute')->format('Y-m-d H:i')]);
+        return Reservations::parCode($r['code']);
+    }
+
+    // Statut posé dans l'espace équipe, comme le fait Admin::action, sans toucher au paiement.
+    private function parLEquipe(array $r, string $statut): array
+    {
+        Reservations::maj($r['id'], ['statut' => $statut, 'expire_le' => null]);
         return Reservations::parCode($r['code']);
     }
 
