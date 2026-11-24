@@ -35,6 +35,12 @@ header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: strict-origin-when-cross-origin');
 header("Content-Security-Policy: default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; font-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
 
+// Aucun formulaire du site n'envoie de liste hors des pièces jointes, qui passent par
+// $_FILES. Une adresse bricolée comme ?j[]=1 donnerait un tableau aux contrôleurs, qui
+// attendent du texte, et la page tomberait en erreur 500 : la valeur compte pour absente.
+$_GET = array_filter($_GET, 'is_string');
+$_POST = array_filter($_POST, 'is_string');
+
 $methode = $_SERVER['REQUEST_METHOD'];
 $chemin = '/' . trim(substr(rawurldecode(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)), strlen(base())), '/');
 // Le français vit à la racine : /fr/… renvoie vers la même page sans préfixe.
