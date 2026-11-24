@@ -3,7 +3,11 @@
 namespace Yamoo\Tests;
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\RequiresPhpExtension;
 use PHPUnit\Framework\TestCase;
+use Yamoo\Demande;
+use Yamoo\Devis;
+use Yamoo\Reservations;
 
 // Vérifie que le vrai serveur de développement ne sert que assets/ : les fichiers
 // privés reçoivent la page introuvable du site.
@@ -45,6 +49,42 @@ final class ServeurTest extends TestCase
     {
         $this->assertSame(200, $this->demande('/vehicules')[0]);
         $this->assertSame(200, $this->demande('/robots.txt')[0]);
+    }
+
+    // Le serveur de développement traite à part les adresses qui finissent par une extension.
+    #[RequiresPhpExtension('pdo_sqlite')]
+    public function testFichierAgendaTelecharge(): void
+    {
+        $debut = maintenant()->modify('+3 days');
+        $d = Demande::depuis([
+            'vehicule' => 'jetour-t2',
+            'formule' => 'avec',
+            'debut' => $debut->format('Y-m-d\TH:i'),
+            'fin' => $debut->modify('+2 days')->format('Y-m-d\TH:i'),
+        ]);
+        $r = Reservations::cree($d, Devis::calcule($d), ['nom' => 'Client de test', 'telephone' => '+237672894084', 'email' => ''], ['paiement_mode' => 'remise']);
+
+        [$code, $corps, $entetes] = $this->demande('/reservation/' . $r['code'] . '/agenda.ics?j=' . $r['jeton']);
+
+        $this->assertSame(200, $code);
+        $this->assertNotEmpty(preg_grep('#^Content-Type: text/calendar#i', $entetes));
+        $this->assertStringStartsWith("BEGIN:VCALENDAR\r\n", $corps);
+        $this->assertStringContainsString($r['code'], $corps);
+    }
+
+    public static function fichiersDeLaRacineSeulement(): array
+    {
+        return [
+            'robots.txt en anglais' => ['/en/robots.txt'],
+            'plan du site en arabe' => ['/ar/sitemap.xml'],
+        ];
+    }
+
+    // Les moteurs ne lisent ces fichiers qu'à la racine : une copie par langue ne sert à rien.
+    #[DataProvider('fichiersDeLaRacineSeulement')]
+    public function testFichierDeLaRacineIntrouvableSousUneLangue(string $chemin): void
+    {
+        $this->assertSame(404, $this->demande($chemin)[0]);
     }
 
     public function testCookieDeSessionChiffreDerriereUnProxyHttps(): void
