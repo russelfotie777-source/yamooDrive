@@ -49,7 +49,11 @@ final class Paiement
         // Un client qui valide sur son téléphone juste avant la fin du délai peut n'être
         // confirmé par le fournisseur qu'après l'expiration : on interroge encore.
         $tardif = $r['statut'] === 'expiree' && $r['paiement_mode'] === 'mobile' && $r['paiement_statut'] !== 'paye';
-        if (($r['statut'] !== 'attente_paiement' && !$tardif) || !$r['paiement_reference']) {
+        // L'équipe a pu confirmer ou annuler pendant que la demande attendait encore sur le
+        // téléphone du client : l'argent qui arrive ensuite doit se voir, sinon on le
+        // redemande à la remise des clés ou on oublie de le rembourser.
+        $apresEquipe = in_array($r['statut'], ['confirmee', 'terminee', 'annulee'], true) && $r['paiement_statut'] === 'en_cours';
+        if (($r['statut'] !== 'attente_paiement' && !$tardif && !$apresEquipe) || !$r['paiement_reference']) {
             return $r;
         }
         try {
@@ -59,6 +63,9 @@ final class Paiement
         }
         if ($tardif) {
             return $etat === 'paye' ? self::recuApresDelai($r) : $r;
+        }
+        if ($apresEquipe) {
+            return self::reponseApresEquipe($r, $etat);
         }
         if ($etat === 'paye') {
             Reservations::maj($r['id'], ['paiement_statut' => 'paye', 'statut' => 'confirmee', 'expire_le' => null], 'Paiement reçu : ' . fcfa($r['total']) . '.', 'paiement');
@@ -80,6 +87,20 @@ final class Paiement
             Reservations::maj($r['id'], ['paiement_statut' => 'paye'], 'Paiement reçu après le délai : ' . fcfa($r['total']) . '. Le véhicule a été réservé entre-temps : remboursement à faire.', 'paiement');
         }
         $pdo->exec('COMMIT');
+        return Reservations::parCode($r['code']);
+    }
+
+    // La décision de l'équipe reste : seul l'état du paiement change.
+    private static function reponseApresEquipe(array $r, string $etat): array
+    {
+        if ($etat === 'paye') {
+            $note = $r['statut'] === 'annulee'
+                ? 'Paiement reçu après l’annulation : ' . fcfa($r['total']) . '. Remboursement à faire.'
+                : 'Paiement reçu : ' . fcfa($r['total']) . '.';
+            Reservations::maj($r['id'], ['paiement_statut' => 'paye'], $note, 'paiement');
+        } elseif ($etat === 'echec') {
+            Reservations::maj($r['id'], ['paiement_statut' => 'echec'], 'Paiement refusé ou annulé sur le téléphone.', 'paiement');
+        }
         return Reservations::parCode($r['code']);
     }
 }
