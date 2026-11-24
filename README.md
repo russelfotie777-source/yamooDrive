@@ -18,6 +18,8 @@ En ligne, derrière un proxy ou un CDN qui chiffre à la place du serveur (Cloud
 
 Le serveur de développement (`php -S`) ne sert lui-même que `assets/` ; toute autre adresse passe par les routes, si bien que `.env`, `.git` et la base ne sortent pas non plus. Ce serveur prend une adresse qui finit par une extension (`agenda.ics`, `/en/robots.txt`) pour le nom du script : `index.php` lui rend le sien, et ces adresses suivent les mêmes routes que sous Apache.
 
+Un paramètre envoyé en liste (`?j[]=1`), qu’aucun formulaire du site ne produit, compte pour absent : la page répond comme sans lui (réservation introuvable, catalogue complet) au lieu de tomber en erreur 500. Seules les pièces jointes du conducteur arrivent en liste, par `$_FILES`.
+
 ## Tests
 
 ```sh
@@ -25,7 +27,7 @@ composer install
 composer test
 ```
 
-Les tests de `tests/` couvrent les réponses intégrées de l’assistant et les outils qu’il appelle avant de citer un prix ou une disponibilité, le devis, la lecture d’une demande, les contrôles du conducteur, les disponibilités, le paiement Mobile Money et le cycle d’une réservation, la relance d’un paiement refusé (par le vrai serveur, avec la session et le jeton du formulaire), le webhook de Notch Pay (par le vrai serveur, avec sa signature), le fichier agenda, les traductions, les formats de chaque langue, le plan du site et les fichiers que le serveur de développement accepte de servir et ses adresses à extension. Ils travaillent sur une base SQLite jetable créée dans le dossier temporaire, jamais sur `stockage/yamoo.sqlite`, et le paiement y reste simulé même si le `.env` local choisit Notch Pay. Il faut les extensions `intl` et `pdo_sqlite` ; sans `pdo_sqlite`, les tests de disponibilité sont sautés. Sous XAMPP : `/opt/lampp/bin/php vendor/bin/phpunit`.
+Les tests de `tests/` couvrent les réponses intégrées de l’assistant et les outils qu’il appelle avant de citer un prix ou une disponibilité, le devis, la lecture d’une demande, les contrôles du conducteur, les disponibilités, le paiement Mobile Money et le cycle d’une réservation, la relance d’un paiement refusé (par le vrai serveur, avec la session et le jeton du formulaire), le webhook de Notch Pay (par le vrai serveur, avec sa signature), le fichier agenda, les traductions, les formats de chaque langue, le plan du site, les adresses bricolées et les fichiers que le serveur de développement accepte de servir et ses adresses à extension. Ils travaillent sur une base SQLite jetable créée dans le dossier temporaire, jamais sur `stockage/yamoo.sqlite`, et le paiement y reste simulé même si le `.env` local choisit Notch Pay. Il faut les extensions `intl` et `pdo_sqlite` ; sans `pdo_sqlite`, les tests de disponibilité sont sautés. Sous XAMPP : `/opt/lampp/bin/php vendor/bin/phpunit`.
 
 Les montants sont lus dans `config/` : les tests restent justes quand la vraie grille tarifaire remplace les prix provisoires.
 
