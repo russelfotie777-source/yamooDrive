@@ -59,6 +59,24 @@ final class Langue
         }
     }
 
+    /**
+     * Exécute $faire dans une autre langue, puis revient à celle de la page : un texte
+     * destiné au client part dans la langue où il a réservé, même depuis l'espace équipe.
+     * @template T
+     * @param callable(): T $faire
+     * @return T
+     */
+    public static function dans(string $code, callable $faire): mixed
+    {
+        $avant = self::$code;
+        self::choisit($code);
+        try {
+            return $faire();
+        } finally {
+            self::$code = $avant;
+        }
+    }
+
     public static function prefixe(?string $code = null): string
     {
         $code ??= self::$code;

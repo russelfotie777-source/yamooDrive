@@ -291,6 +291,29 @@ final class ReservationsTest extends TestCase
         $this->assertSame([], Reservations::liste(null, '+33 6 72 89 40 84'));
     }
 
+    public static function languesDuClient(): array
+    {
+        return [
+            'français, à la racine' => ['fr', 'Bonjour Client de test, Yamoo Drive au sujet de votre réservation', 'http://localhost/reservation/'],
+            'arabe' => ['ar', 'مرحبًا Client de test، معك Yamoo Drive بخصوص حجزك', 'http://localhost/ar/reservation/'],
+            'langue retirée du site' => ['xx', 'Bonjour Client de test, Yamoo Drive au sujet de votre réservation', 'http://localhost/reservation/'],
+        ];
+    }
+
+    #[DataProvider('languesDuClient')]
+    public function testMessageAuClientDansLaLangueDeSaReservation(string $langue, string $salut, string $lien): void
+    {
+        $r = $this->cree(['paiement_mode' => 'remise']);
+        Reservations::maj($r['id'], ['langue' => $langue]);
+
+        [$premiere, $seconde] = explode("\n", Reservations::messageAuClient(Reservations::parCode($r['code'])));
+
+        $this->assertStringStartsWith($salut, $premiere);
+        $this->assertStringContainsString($r['code'], $premiere);
+        $this->assertStringEndsWith($lien . $r['code'] . '?j=' . $r['jeton'], $seconde);
+        $this->assertSame('fr', \Yamoo\Langue::$code);
+    }
+
     private function cree(array $extra = [], string $depart = '+3 days'): array
     {
         $debut = maintenant()->modify($depart);
