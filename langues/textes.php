@@ -322,6 +322,7 @@ return [
     'Paiement et caution' => ['Payment and deposit', 'Pago y depósito', 'Zahlung und Kaution', '付款与押金', 'الدفع والتأمين'],
     'Paiement non reçu' => ['Payment not received', 'Pago no recibido', 'Zahlung nicht eingegangen', '未收到付款', 'لم يُستلم الدفع'],
     'Paiement reçu. Ouverture de votre réservation…' => ['Payment received. Opening your booking…', 'Pago recibido. Abriendo su reserva…', 'Zahlung erhalten. Ihre Buchung wird geöffnet…', '已收到付款。正在打开您的预订…', 'تم استلام الدفع. جارٍ فتح حجزك…'],
+    'Paiement reçu par l’équipe' => ['Payment received by the team', 'Pago recibido por el equipo', 'Zahlung vom Team erhalten', '团队已收到付款', 'استلم الفريق الدفع'],
     'Par exemple AF 902' => ['For example AF 902', 'Por ejemplo AF 902', 'Zum Beispiel AF 902', '例如 AF 902', 'مثلًا AF 902'],
     'Parler à l’équipe sur WhatsApp' => ['Talk to the team on WhatsApp', 'Hablar con el equipo por WhatsApp', 'Mit dem Team auf WhatsApp sprechen', '通过 WhatsApp 联系团队', 'تحدث مع الفريق عبر WhatsApp'],
     'Partenaire SKY MOTORS, distributeur Jetour et JMC' => ['Partner of SKY MOTORS, Jetour and JMC distributor', 'Socio de SKY MOTORS, distribuidor de Jetour y JMC', 'Partner von SKY MOTORS, Händler für Jetour und JMC', '合作伙伴：SKY MOTORS（捷途和江铃经销商）', 'شريك SKY MOTORS، موزّع Jetour وJMC'],

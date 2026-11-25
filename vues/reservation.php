@@ -18,6 +18,13 @@ $lien = url_absolue('/reservation/' . $r['code'], ['j' => $r['jeton']]);
 $actif = in_array($r['statut'], ['demande', 'confirmee'], true);
 $detail = $r['mission_detail'];
 $limite = Reservations::limiteAnnulation($r);
+// Une réservation à payer à la remise des clés n'a pas d'opérateur : quand l'équipe note
+// le paiement, c'est elle qui l'a reçu.
+$paiement = match (true) {
+    $r['paiement_statut'] !== 'paye' => t('À payer à la remise des clés'),
+    $r['paiement_mode'] === 'remise' => t('Paiement reçu par l’équipe'),
+    default => t('Payé par {operateur}', ['operateur' => $r['paiement_operateur'] === 'orange' ? 'Orange Money' : 'MTN Mobile Money']),
+};
 ?>
 <div class="conteneur confirmation">
   <?php if ($flash): ?><p class="message message-info" role="status"><?= icone('info') ?><?= e($flash) ?></p><?php endif ?>
@@ -89,7 +96,7 @@ $limite = Reservations::limiteAnnulation($r);
           <?php if ($r['frais_rapatriement']): ?><div><dt><?= e(t('Frais de rapatriement')) ?></dt><dd><?= fcfa($r['frais_rapatriement']) ?></dd></div><?php endif ?>
         </dl>
         <p class="total"><span><?= e(t('Total')) ?></span><strong><?= fcfa($r['total']) ?></strong></p>
-        <p class="etiquette <?= $r['paiement_statut'] === 'paye' ? 'etiquette-succes' : 'etiquette-neutre' ?>"><?= e($r['paiement_statut'] === 'paye' ? t('Payé par {operateur}', ['operateur' => $r['paiement_operateur'] === 'orange' ? 'Orange Money' : 'MTN Mobile Money']) : t('À payer à la remise des clés')) ?></p>
+        <p class="etiquette <?= $r['paiement_statut'] === 'paye' ? 'etiquette-succes' : 'etiquette-neutre' ?>"><?= e($paiement) ?></p>
       </div>
       <?php if (Reservations::annulableParClient($r)): ?>
         <form class="annulation" method="post" action="<?= url('/reservation/' . $r['code'] . '/annuler') ?>" data-confirmer="<?= e(t('Annuler cette réservation ? Le véhicule sera libéré.')) ?>">
