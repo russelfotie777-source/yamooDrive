@@ -112,12 +112,7 @@ final class RelancePaiementTest extends TestCase
         $this->assertSame(200, $code);
         $this->assertStringContainsString('name="choix" value="remise"', $corps);
         preg_match('/name="_csrf" value="([a-f0-9]+)"/', $corps, $csrf);
-        $cookie = null;
-        foreach ($entetes as $ligne) {
-            if (preg_match('/^Set-Cookie: (yamoo=[^;]+)/i', $ligne, $m)) {
-                $cookie = $m[1];
-            }
-        }
+        $cookie = self::cookieDeSession($entetes);
         $this->assertNotEmpty($csrf[1] ?? null);
         $this->assertNotNull($cookie);
         return ['cookie' => $cookie, 'csrf' => $csrf[1]];

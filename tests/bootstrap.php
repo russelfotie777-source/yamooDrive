@@ -16,6 +16,8 @@ register_shutdown_function(function () use ($base) {
 // Le paiement reste simulé quel que soit le .env local : aucun test n'appelle Notch Pay.
 putenv('PAIEMENT_FOURNISSEUR=demo');
 putenv('NOTCHPAY_HASH_WEBHOOK=hash-des-tests');
+// L'espace équipe s'ouvre avec ce mot de passe, quel que soit celui du .env local.
+putenv('ADMIN_MOT_DE_PASSE=mot-de-passe-des-tests');
 
 $_SERVER['SCRIPT_NAME'] = '/index.php';
 $_SERVER['HTTP_HOST'] = 'localhost';

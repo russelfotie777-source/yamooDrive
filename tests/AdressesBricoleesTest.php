@@ -32,12 +32,7 @@ final class AdressesBricoleesTest extends TestCase
     {
         [, $corps, $entetes] = $this->demande('/vehicules');
         preg_match('/data-csrf="([a-f0-9]+)"/', $corps, $csrf);
-        $cookie = null;
-        foreach ($entetes as $ligne) {
-            if (preg_match('/^Set-Cookie: (yamoo=[^;]+)/i', $ligne, $m)) {
-                $cookie = $m[1];
-            }
-        }
+        $cookie = self::cookieDeSession($entetes);
         $this->assertNotEmpty($csrf[1] ?? null);
         $this->assertNotNull($cookie);
 
