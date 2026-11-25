@@ -197,10 +197,17 @@ final class Admin
             $_SESSION['erreur_equipe'] = 'Choisissez un véhicule et deux dates dans l’ordre.';
             redirige(url('/equipe/flotte'));
         }
+        $du = $debut->format('Y-m-d 00:00');
+        $au = $fin->modify('+1 day')->format('Y-m-d 00:00');
+        // Un blocage déjà fini ne retirerait rien et n'apparaîtrait pas dans la liste.
+        if ($au <= maintenant()->format('Y-m-d H:i')) {
+            $_SESSION['erreur_equipe'] = 'Ces dates sont passées. Choisissez des dates à venir.';
+            redirige(url('/equipe/flotte'));
+        }
         Base::pdo()->prepare('INSERT INTO indisponibilites (vehicule, debut, fin, motif, cree_le) VALUES (?, ?, ?, ?, ?)')->execute([
             $v['slug'],
-            $debut->format('Y-m-d 00:00'),
-            $fin->modify('+1 day')->format('Y-m-d 00:00'),
+            $du,
+            $au,
             mb_substr(trim((string) ($_POST['motif'] ?? '')), 0, 120) ?: null,
             maintenant()->format('Y-m-d H:i:s'),
         ]);
