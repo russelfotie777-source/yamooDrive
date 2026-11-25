@@ -86,14 +86,16 @@ final class Admin
             'journal' => Reservations::journal($r['id']),
             'actions' => Reservations::actionsEquipe($r),
             'flash' => Pages::flash(),
-            'erreur' => self::erreur(),
+            'erreur' => self::message('erreur_equipe'),
         ], 'admin/gabarit');
     }
 
-    private static function erreur(): ?string
+    // Message laissé en session pour la page suivante, lu une seule fois. Pages::flash()
+    // garde les confirmations ; une erreur ou un avertissement s'affiche à part, dans sa couleur.
+    private static function message(string $cle): ?string
     {
-        $m = $_SESSION['erreur_equipe'] ?? null;
-        unset($_SESSION['erreur_equipe']);
+        $m = $_SESSION[$cle] ?? null;
+        unset($_SESSION[$cle]);
         return $m;
     }
 
@@ -175,6 +177,7 @@ final class Admin
             'blocages' => $blocages,
             'etats' => $etats,
             'flash' => Pages::flash(),
+            'erreur' => self::message('erreur_equipe'),
         ], 'admin/gabarit');
     }
 
@@ -191,7 +194,7 @@ final class Admin
         $debut = Conducteur::date($_POST['debut'] ?? null);
         $fin = Conducteur::date($_POST['fin'] ?? null);
         if (!$v || !$debut || !$fin || $fin < $debut) {
-            Pages::flash('Choisissez un véhicule et deux dates dans l’ordre.');
+            $_SESSION['erreur_equipe'] = 'Choisissez un véhicule et deux dates dans l’ordre.';
             redirige(url('/equipe/flotte'));
         }
         Base::pdo()->prepare('INSERT INTO indisponibilites (vehicule, debut, fin, motif, cree_le) VALUES (?, ?, ?, ?, ?)')->execute([

@@ -5,6 +5,7 @@ use Yamoo\Reservations;
 <div class="outil-entete">
   <h1 class="outil-titre">Flotte</h1>
 </div>
+<?php if ($erreur): ?><p class="message message-erreur" role="alert"><?= icone('info') ?><?= e($erreur) ?></p><?php endif ?>
 <?php if ($flash): ?><p class="message message-succes" role="status"><?= icone('check') ?><?= e($flash) ?></p><?php endif ?>
 <section class="panneau">
   <h2 class="panneau-titre">Bloquer des dates</h2>
