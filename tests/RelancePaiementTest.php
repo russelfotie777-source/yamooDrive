@@ -64,6 +64,47 @@ final class RelancePaiementTest extends TestCase
         $this->assertSame('demande', Reservations::parCode($suivant['code'])['statut']);
     }
 
+    // Double clic sur « Relancer », ou second onglet resté sur l'écran d'échec : la
+    // première demande attend sur le téléphone et doit garder sa référence, sinon le
+    // paiement que le client y valide n'arriverait sur aucune réservation.
+    #[DataProvider('choix')]
+    public function testChoixRefusePendantUneDemandeEnCours(string $choix): void
+    {
+        $r = $this->refusee();
+        $formulaire = $this->ouvre($r);
+        $this->envoie($r, 'relancer', $formulaire, '6 72 89 40 84');
+        $premiere = Reservations::parCode($r['code']);
+        $this->assertSame('en_cours', $premiere['paiement_statut']);
+
+        [$code, , $entetes] = $this->envoie($r, $choix, $formulaire, '6 99 11 22 33');
+
+        $this->assertSame(303, $code);
+        $this->assertContains('Location: /paiement/' . $r['code'] . '?j=' . $r['jeton'], $entetes);
+        $relue = Reservations::parCode($r['code']);
+        $this->assertSame('attente_paiement', $relue['statut']);
+        $this->assertSame('mobile', $relue['paiement_mode']);
+        $this->assertSame($premiere['paiement_reference'], $relue['paiement_reference']);
+        $this->assertSame('+237672894084', $relue['paiement_numero']);
+        $this->assertSame($premiere['expire_le'], $relue['expire_le']);
+        [, $page] = $this->demande('/paiement/' . $r['code'] . '?j=' . $r['jeton'], null, $formulaire['cookie']);
+        $this->assertStringContainsString('Une demande attend déjà sur votre téléphone', $page);
+    }
+
+    // La demande relancée a été refusée à son tour : le client peut réessayer.
+    public function testRelanceAutoriseeQuandLaDemandeEnCoursAEchoue(): void
+    {
+        $r = $this->refusee();
+        $formulaire = $this->ouvre($r);
+        $this->envoie($r, 'relancer', $formulaire);
+        $this->assertSame('en_cours', Reservations::parCode($r['code'])['paiement_statut']);
+
+        $this->envoie($r, 'relancer', $formulaire, '6 72 89 40 84');
+
+        $relue = Reservations::parCode($r['code']);
+        $this->assertSame('+237672894084', $relue['paiement_numero']);
+        $this->assertSame('en_cours', $relue['paiement_statut']);
+    }
+
     /** Ouvre la page de paiement comme le client : cookie de session et jeton du formulaire. */
     private function ouvre(array $r): array
     {
@@ -82,13 +123,13 @@ final class RelancePaiementTest extends TestCase
         return ['cookie' => $cookie, 'csrf' => $csrf[1]];
     }
 
-    private function envoie(array $r, string $choix, array $formulaire): array
+    private function envoie(array $r, string $choix, array $formulaire, string $numero = '6 72 89 40 00'): array
     {
         return $this->demande('/paiement/' . $r['code'], [
             '_csrf' => $formulaire['csrf'],
             'j' => $r['jeton'],
             'operateur' => 'mtn',
-            'numero' => '6 72 89 40 00',
+            'numero' => $numero,
             'choix' => $choix,
         ], $formulaire['cookie']);
     }
