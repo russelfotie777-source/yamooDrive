@@ -40,6 +40,18 @@ trait AvecServeur
         rmdir(self::$sessions);
     }
 
+    /** Cookie de session posé par une réponse, à renvoyer avec les demandes suivantes. */
+    private static function cookieDeSession(array $entetes): ?string
+    {
+        $cookie = null;
+        foreach ($entetes as $ligne) {
+            if (preg_match('/^Set-Cookie: (yamoo=[^;]+)/i', $ligne, $m)) {
+                $cookie = $m[1];
+            }
+        }
+        return $cookie;
+    }
+
     /**
      * GET, ou POST quand un formulaire est donné. Les redirections ne sont pas suivies.
      * @param list<string> $entetes en-têtes de plus, comme « X-Forwarded-Proto: https »
