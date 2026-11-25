@@ -1,4 +1,7 @@
-<?php use Yamoo\Flotte; ?>
+<?php
+use Yamoo\Flotte;
+use Yamoo\Reservations;
+?>
 <div class="outil-entete">
   <h1 class="outil-titre">Flotte</h1>
 </div>
@@ -25,7 +28,10 @@
           <td><strong><?= e($v['nom']) ?></strong><span class="discret"><?= e($v['type']) ?></span></td>
           <td><?php foreach ($v['tarifs'] as $f => $prix): ?><span class="discret-ligne"><?= $f === 'sans' ? 'Sans' : 'Avec' ?> chauffeur · <?= fcfa($prix) ?></span><?php endforeach ?></td>
           <td><?php if (!$etats[$slug]): ?><span class="discret">Aucune</span><?php endif ?>
-            <?php foreach (array_slice($etats[$slug], 0, 3) as $o): ?><span class="discret-ligne"><?= e(date_texte($o['debut'], 'dMMM')) ?> – <?= e(date_texte($o['fin'], 'dMMM')) ?></span><?php endforeach ?></td>
+            <?php foreach (array_slice($etats[$slug], 0, 3) as $o): ?>
+              <span class="discret-ligne"><a class="code" href="<?= url('/equipe/reservations/' . $o['code']) ?>"><?= e($o['code']) ?></a> · <?= e(date_texte($o['debut'], 'dMMM')) ?> – <?= e(date_texte($o['retour'], 'dMMM')) ?><?php if ($o['statut'] !== 'confirmee'): ?> <span class="statut statut-<?= e($o['statut']) ?>"><?= e(Reservations::STATUTS[$o['statut']]) ?></span><?php endif ?></span>
+            <?php endforeach ?>
+            <?php if (count($etats[$slug]) > 3): ?><span class="discret"><?= count($etats[$slug]) - 3 === 1 ? 'et 1 autre' : 'et ' . (count($etats[$slug]) - 3) . ' autres' ?></span><?php endif ?></td>
           <td><?php if (empty($blocages[$slug])): ?><span class="discret">Aucune</span><?php endif ?>
             <?php foreach ($blocages[$slug] ?? [] as $b): ?>
               <form method="post" class="blocage"><?= champ_csrf() ?>
