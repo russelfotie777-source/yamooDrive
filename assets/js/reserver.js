@@ -31,8 +31,10 @@
     tel.addEventListener('input', () => { if (!numeroTouche) numero.value = tel.value; });
   }
 
-  // Âge et ancienneté du permis, calculés au jour du départ.
+  // Âge et ancienneté du permis, calculés au jour du départ. Les limites et les messages
+  // d'erreur viennent du serveur, qui les tire des réglages.
   const limites = { naissance: form.dataset.naissanceMax, permis: form.dataset.permisMax };
+  const refus = { naissance: form.dataset.naissanceErreur, permis: form.dataset.permisErreur };
   form.querySelectorAll('[data-controle]').forEach((champ) => {
     const cle = champ.dataset.controle;
     const sortie = form.querySelector(`[data-controle-message="${cle}"]`);
@@ -43,7 +45,7 @@
       sortie.className = ok ? 'champ-aide champ-ok' : 'champ-erreur';
       sortie.textContent = ok
         ? (cle === 'naissance' ? t('Âge vérifié pour la date de départ.') : t('Ancienneté du permis vérifiée.'))
-        : (cle === 'naissance' ? t('Le conducteur doit avoir au moins 23 ans le jour du départ.') : t('Le permis doit avoir au moins 2 ans le jour du départ.'));
+        : refus[cle];
       champ.setAttribute('aria-invalid', String(!ok));
     };
     champ.addEventListener('change', verifie);
