@@ -6,6 +6,11 @@ use Yamoo\Reservations;
   <h1 class="outil-titre">Flotte</h1>
 </div>
 <?php if ($erreur): ?><p class="message message-erreur" role="alert"><?= icone('info') ?><?= e($erreur) ?></p><?php endif ?>
+<?php if ($avertissement): $codes = $avertissement['codes']; ?>
+  <p class="message message-alerte" role="alert"><?= icone('info') ?><span><?= e($avertissement['fait']) ?>
+    <?php foreach ($codes as $i => $code): ?><?= $i === 0 ? '' : ($i === count($codes) - 1 ? ' et ' : ', ') ?><a class="code" href="<?= url('/equipe/reservations/' . $code) ?>"><?= e($code) ?></a><?php endforeach ?>
+    <?= count($codes) === 1 ? 'a déjà ce véhicule sur ces dates : prévenez le client ou proposez-lui un autre véhicule.' : 'ont déjà ce véhicule sur ces dates : prévenez les clients ou proposez-leur un autre véhicule.' ?></span></p>
+<?php endif ?>
 <?php if ($flash): ?><p class="message message-succes" role="status"><?= icone('check') ?><?= e($flash) ?></p><?php endif ?>
 <section class="panneau">
   <h2 class="panneau-titre">Bloquer des dates</h2>

@@ -92,7 +92,7 @@ final class Admin
 
     // Message laissé en session pour la page suivante, lu une seule fois. Pages::flash()
     // garde les confirmations ; une erreur ou un avertissement s'affiche à part, dans sa couleur.
-    private static function message(string $cle): ?string
+    private static function message(string $cle): string|array|null
     {
         $m = $_SESSION[$cle] ?? null;
         unset($_SESSION[$cle]);
@@ -178,6 +178,7 @@ final class Admin
             'etats' => $etats,
             'flash' => Pages::flash(),
             'erreur' => self::message('erreur_equipe'),
+            'avertissement' => self::message('avertissement_equipe'),
         ], 'admin/gabarit');
     }
 
@@ -204,6 +205,7 @@ final class Admin
             $_SESSION['erreur_equipe'] = 'Ces dates sont passées. Choisissez des dates à venir.';
             redirige(url('/equipe/flotte'));
         }
+        $touchees = array_filter(Disponibilite::occupations($v['slug']), fn ($o) => $o['debut'] < $au && $o['fin'] > $du);
         Base::pdo()->prepare('INSERT INTO indisponibilites (vehicule, debut, fin, motif, cree_le) VALUES (?, ?, ?, ?, ?)')->execute([
             $v['slug'],
             $du,
@@ -211,7 +213,16 @@ final class Admin
             mb_substr(trim((string) ($_POST['motif'] ?? '')), 0, 120) ?: null,
             maintenant()->format('Y-m-d H:i:s'),
         ]);
-        Pages::flash($v['court'] . ' bloqué du ' . date_texte($debut, 'dMMM') . ' au ' . date_texte($fin, 'dMMM') . '.');
+        // « inclus » : le blocage court jusqu'au lendemain 0 h, le dernier jour est pris.
+        $fait = $v['court'] . ' bloqué du ' . date_texte($debut, 'dMMM') . ' au ' . date_texte($fin, 'dMMM') . ' inclus.';
+        // Une panne n'attend pas : le blocage est gardé, mais les clients qui ont déjà le
+        // véhicule sur ces dates doivent être prévenus.
+        $codes = array_column(array_filter($touchees, fn ($o) => $o['type'] === 'reservation'), 'code');
+        if ($codes && count($touchees) >= $v['unites']) {
+            $_SESSION['avertissement_equipe'] = ['fait' => $fait, 'codes' => $codes];
+        } else {
+            Pages::flash($fait);
+        }
         redirige(url('/equipe/flotte'));
     }
 }
