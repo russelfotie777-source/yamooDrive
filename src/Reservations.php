@@ -220,6 +220,16 @@ final class Reservations
         return $d;
     }
 
+    // Message de l'équipe au client, dans la langue où il a réservé, avec le lien de sa
+    // réservation : le client qui l'a perdu le retrouve, dans sa langue.
+    public static function messageAuClient(array $r): string
+    {
+        return Langue::dans($r['langue'] ?? 'fr', fn () => implode("\n", [
+            t('Bonjour {nom}, Yamoo Drive au sujet de votre réservation {code}.', ['nom' => $r['client_nom'], 'code' => $r['code']]),
+            t('Le lien de votre réservation : {lien}', ['lien' => url_absolue('/reservation/' . $r['code'], ['j' => $r['jeton']])]),
+        ]));
+    }
+
     public static function messageWhatsapp(array $r): string
     {
         $v = $r['v'];
