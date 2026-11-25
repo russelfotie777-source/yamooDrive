@@ -124,6 +124,25 @@ final class EspaceEquipeTest extends TestCase
         $this->assertSame(0, $this->blocages());
     }
 
+    // L'équipe écrit en français, mais le premier message part dans la langue du client,
+    // avec le lien de sa réservation dans cette langue.
+    public function testMessageAuClientDansSaLangue(): void
+    {
+        $debut = maintenant()->modify('+3 days')->setTime(9, 0);
+        $r = $this->reserve($debut, $debut->modify('+2 days'), 'confirmee');
+        Reservations::maj($r['id'], ['langue' => 'en']);
+
+        [$code, $page] = $this->demande('/equipe/reservations/' . $r['code'], null, $this->connecteEquipe());
+
+        $this->assertSame(200, $code);
+        $this->assertSame(1, preg_match('#href="https://wa\.me/237672894084\?text=([^"]+)"[^>]*>.*?Écrire au client</a>#s', $page, $m));
+        $this->assertSame(
+            "Hello Client de test, this is Yamoo Drive about your booking {$r['code']}.\n"
+            . 'Your booking link: ' . self::$adresse . "/en/reservation/{$r['code']}?j={$r['jeton']}",
+            rawurldecode(html_entity_decode($m[1]))
+        );
+    }
+
     public function testMauvaisMotDePasseRefuse(): void
     {
         [, $corps, $entetes] = $this->demande('/equipe');
