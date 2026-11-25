@@ -294,9 +294,18 @@ final class Pages
         // compte : le véhicule est libre pour les autres depuis. Relancer ou passer à la
         // remise des clés sans le constater le reprendrait à un client qui l'a réservé.
         Reservations::expire();
-        $r = Reservations::parCode($code);
+        // La réponse du téléphone a pu arriver depuis l'affichage de la page.
+        $r = Paiement::verifie(Reservations::parCode($code));
         if ($r['statut'] !== 'attente_paiement') {
             redirige(url('/reservation/' . $code, ['j' => $r['jeton']]));
+        }
+        // Une demande attend encore sur le téléphone (double clic, second onglet resté sur
+        // l'écran d'échec). En envoyer une autre remplacerait sa référence : si le client
+        // validait la première, son argent n'arriverait sur aucune réservation. Passer à
+        // la remise des clés l'oublierait de la même façon.
+        if ($r['paiement_statut'] === 'en_cours') {
+            self::flash(t('Une demande attend déjà sur votre téléphone : validez-la avec votre code secret.'));
+            redirige(url('/paiement/' . $code, ['j' => $r['jeton']]));
         }
         if (($_POST['choix'] ?? '') === 'remise') {
             Reservations::maj($r['id'], ['paiement_mode' => 'remise', 'paiement_statut' => 'aucun', 'statut' => 'demande', 'expire_le' => null], 'Le client paiera à la remise des clés.');
