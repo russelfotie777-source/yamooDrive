@@ -86,14 +86,16 @@ final class Admin
             'journal' => Reservations::journal($r['id']),
             'actions' => Reservations::actionsEquipe($r),
             'flash' => Pages::flash(),
-            'erreur' => self::erreur(),
+            'erreur' => self::message('erreur_equipe'),
         ], 'admin/gabarit');
     }
 
-    private static function erreur(): ?string
+    // Message laissé en session pour la page suivante, lu une seule fois. Pages::flash()
+    // garde les confirmations ; une erreur ou un avertissement s'affiche à part, dans sa couleur.
+    private static function message(string $cle): string|array|null
     {
-        $m = $_SESSION['erreur_equipe'] ?? null;
-        unset($_SESSION['erreur_equipe']);
+        $m = $_SESSION[$cle] ?? null;
+        unset($_SESSION[$cle]);
         return $m;
     }
 
@@ -175,6 +177,8 @@ final class Admin
             'blocages' => $blocages,
             'etats' => $etats,
             'flash' => Pages::flash(),
+            'erreur' => self::message('erreur_equipe'),
+            'avertissement' => self::message('avertissement_equipe'),
         ], 'admin/gabarit');
     }
 
@@ -191,17 +195,34 @@ final class Admin
         $debut = Conducteur::date($_POST['debut'] ?? null);
         $fin = Conducteur::date($_POST['fin'] ?? null);
         if (!$v || !$debut || !$fin || $fin < $debut) {
-            Pages::flash('Choisissez un véhicule et deux dates dans l’ordre.');
+            $_SESSION['erreur_equipe'] = 'Choisissez un véhicule et deux dates dans l’ordre.';
             redirige(url('/equipe/flotte'));
         }
+        $du = $debut->format('Y-m-d 00:00');
+        $au = $fin->modify('+1 day')->format('Y-m-d 00:00');
+        // Un blocage déjà fini ne retirerait rien et n'apparaîtrait pas dans la liste.
+        if ($au <= maintenant()->format('Y-m-d H:i')) {
+            $_SESSION['erreur_equipe'] = 'Ces dates sont passées. Choisissez des dates à venir.';
+            redirige(url('/equipe/flotte'));
+        }
+        $touchees = array_filter(Disponibilite::occupations($v['slug']), fn ($o) => $o['debut'] < $au && $o['fin'] > $du);
         Base::pdo()->prepare('INSERT INTO indisponibilites (vehicule, debut, fin, motif, cree_le) VALUES (?, ?, ?, ?, ?)')->execute([
             $v['slug'],
-            $debut->format('Y-m-d 00:00'),
-            $fin->modify('+1 day')->format('Y-m-d 00:00'),
+            $du,
+            $au,
             mb_substr(trim((string) ($_POST['motif'] ?? '')), 0, 120) ?: null,
             maintenant()->format('Y-m-d H:i:s'),
         ]);
-        Pages::flash($v['court'] . ' bloqué du ' . date_texte($debut, 'dMMM') . ' au ' . date_texte($fin, 'dMMM') . '.');
+        // « inclus » : le blocage court jusqu'au lendemain 0 h, le dernier jour est pris.
+        $fait = $v['court'] . ' bloqué du ' . date_texte($debut, 'dMMM') . ' au ' . date_texte($fin, 'dMMM') . ' inclus.';
+        // Une panne n'attend pas : le blocage est gardé, mais les clients qui ont déjà le
+        // véhicule sur ces dates doivent être prévenus.
+        $codes = array_column(array_filter($touchees, fn ($o) => $o['type'] === 'reservation'), 'code');
+        if ($codes && count($touchees) >= $v['unites']) {
+            $_SESSION['avertissement_equipe'] = ['fait' => $fait, 'codes' => $codes];
+        } else {
+            Pages::flash($fait);
+        }
         redirige(url('/equipe/flotte'));
     }
 }

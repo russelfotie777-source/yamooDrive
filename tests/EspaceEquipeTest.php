@@ -3,6 +3,7 @@
 namespace Yamoo\Tests;
 
 use DateTimeImmutable;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\RequiresPhpExtension;
 use PHPUnit\Framework\TestCase;
 use Yamoo\Base;
@@ -75,6 +76,54 @@ final class EspaceEquipeTest extends TestCase
         $this->assertStringContainsString('<span class="discret">et 2 autres</span>', $corps);
     }
 
+    public function testBlocageDeDatesLibresConfirme(): void
+    {
+        $du = maintenant()->modify('+30 days');
+
+        $page = $this->bloque($du, $du->modify('+1 day'));
+
+        $this->assertStringContainsString('<p class="message message-succes" role="status">', $page);
+        $this->assertStringContainsString('Jetour T2 bloqué du ' . date_texte($du, 'dMMM') . ' au ' . date_texte($du->modify('+1 day'), 'dMMM') . ' inclus.</p>', $page);
+        $this->assertSame(1, $this->blocages());
+    }
+
+    // Une panne n'attend pas : le blocage est gardé, mais l'équipe doit prévenir les clients.
+    public function testBlocageSurUneReservationPrevientLEquipe(): void
+    {
+        $debut = maintenant()->modify('+3 days')->setTime(9, 0);
+        $r = $this->reserve($debut, $debut->modify('+2 days'), 'confirmee');
+        $this->reserve($debut->modify('+10 days'), $debut->modify('+11 days'), 'confirmee');
+
+        $page = $this->bloque($debut->modify('+1 day'), $debut->modify('+1 day'));
+
+        $this->assertStringContainsString('<p class="message message-alerte" role="alert">', $page);
+        $this->assertSame(1, preg_match('#<p class="message message-alerte".*?</p>#s', $page, $m));
+        $this->assertStringContainsString('<a class="code" href="/equipe/reservations/' . $r['code'] . '">' . $r['code'] . '</a>', $m[0]);
+        $this->assertStringContainsString('a déjà ce véhicule sur ces dates : prévenez le client', $m[0]);
+        $this->assertSame(1, substr_count($m[0], '<a '));
+        $this->assertStringNotContainsString('message-succes', $page);
+        $this->assertSame(1, $this->blocages());
+    }
+
+    public static function blocagesRefuses(): array
+    {
+        return [
+            'dates dans le désordre' => ['+5 days', '+3 days', 'Choisissez un véhicule et deux dates dans l’ordre.'],
+            'dates passées' => ['-5 days', '-3 days', 'Ces dates sont passées. Choisissez des dates à venir.'],
+        ];
+    }
+
+    #[DataProvider('blocagesRefuses')]
+    public function testBlocageRefuseEnErreur(string $du, string $au, string $message): void
+    {
+        $page = $this->bloque(maintenant()->modify($du), maintenant()->modify($au));
+
+        $this->assertStringContainsString('<p class="message message-erreur" role="alert">', $page);
+        $this->assertStringContainsString($message . '</p>', $page);
+        $this->assertStringNotContainsString('message-succes', $page);
+        $this->assertSame(0, $this->blocages());
+    }
+
     public function testMauvaisMotDePasseRefuse(): void
     {
         [, $corps, $entetes] = $this->demande('/equipe');
@@ -86,6 +135,29 @@ final class EspaceEquipeTest extends TestCase
         [, $page] = $this->demande('/equipe', null, $cookie);
         $this->assertStringContainsString('Mot de passe incorrect', $page);
         $this->assertSame(303, $this->demande('/equipe/flotte', null, $cookie)[0]);
+    }
+
+    /** Bloque le Jetour T2 depuis la page Flotte et rend la page affichée ensuite. */
+    private function bloque(DateTimeImmutable $du, DateTimeImmutable $au): string
+    {
+        $cookie = $this->connecteEquipe();
+        [, $page] = $this->demande('/equipe/flotte', null, $cookie);
+        preg_match('/name="_csrf" value="([a-f0-9]+)"/', $page, $csrf);
+        [$code, , $entetes] = $this->demande('/equipe/flotte', [
+            '_csrf' => $csrf[1],
+            'vehicule' => 'jetour-t2',
+            'debut' => $du->format('Y-m-d'),
+            'fin' => $au->format('Y-m-d'),
+            'motif' => 'Vidange',
+        ], $cookie);
+        $this->assertSame(303, $code);
+        $this->assertContains('Location: /equipe/flotte', $entetes);
+        return $this->demande('/equipe/flotte', null, $cookie)[1];
+    }
+
+    private function blocages(): int
+    {
+        return (int) Base::pdo()->query('SELECT COUNT(*) FROM indisponibilites')->fetchColumn();
     }
 
     private function reserve(DateTimeImmutable $debut, DateTimeImmutable $fin, string $statut): array

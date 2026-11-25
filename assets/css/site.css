@@ -365,6 +365,10 @@ strong { font-weight: 600; color: var(--texte-fort); }
 .message-erreur { background: var(--danger-fond); color: var(--danger); }
 .message-info { background: var(--info-fond); color: var(--texte-fort); }
 .message-succes { background: var(--succes-fond); color: var(--succes); }
+/* L'orange d'alerte n'atteint pas 4,5:1 sur son fond en texte courant : il reste à l'icône. */
+.message-alerte { background: var(--alerte-fond); color: var(--texte-fort); }
+.message-alerte .icone { color: var(--alerte); }
+.message .code { white-space: nowrap; }
 .message-bloc ul { margin-top: var(--e2); padding-inline-start: var(--e6); }
 .message-bloc a { color: inherit; }
 
