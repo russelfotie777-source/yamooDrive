@@ -15,12 +15,15 @@ final class Disponibilite
         $tolerance = (int) config('regles.tolerance_retour_minutes');
         $maintenant = maintenant()->format('Y-m-d H:i');
         $depuis ??= $maintenant;
+        // Une location dont le retour prévu vient de passer occupe encore le véhicule
+        // jusqu'à la fin de son heure de tolérance.
+        $retourDepuis = date_locale($depuis)->modify("-$tolerance minutes")->format('Y-m-d H:i');
         $q = Base::pdo()->prepare(
             "SELECT id, debut, fin, statut FROM reservations
-             WHERE vehicule = :v AND fin >= :depuis AND (:sauf IS NULL OR id != :sauf)
+             WHERE vehicule = :v AND fin >= :retour_depuis AND (:sauf IS NULL OR id != :sauf)
                AND (statut IN ('demande', 'confirmee') OR (statut = 'attente_paiement' AND expire_le > :maintenant))"
         );
-        $q->execute(['v' => $vehicule, 'depuis' => $depuis, 'sauf' => $saufId, 'maintenant' => $maintenant]);
+        $q->execute(['v' => $vehicule, 'retour_depuis' => $retourDepuis, 'sauf' => $saufId, 'maintenant' => $maintenant]);
         $liste = [];
         foreach ($q as $r) {
             $liste[] = [

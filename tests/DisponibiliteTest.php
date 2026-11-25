@@ -121,6 +121,31 @@ final class DisponibiliteTest extends TestCase
         $this->assertSame($fin->modify("+$tolerance minutes")->format('Y-m-d H:i'), Disponibilite::etatActuel($this->v)->format('Y-m-d H:i'));
     }
 
+    // Retour prévu il y a une demi-heure : le client a encore son heure de tolérance, le
+    // véhicule reste en location jusqu'à sa fin.
+    public function testLocationQuiVientDeFinirGardeSonHeureDeTolerance(): void
+    {
+        $tolerance = config('regles.tolerance_retour_minutes');
+        $fin = maintenant()->modify('-' . intdiv($tolerance, 2) . ' minutes');
+        $this->insere(maintenant()->modify('-2 days')->format('Y-m-d H:i'), $fin->format('Y-m-d H:i'), 'confirmee');
+        $rendu = $fin->modify("+$tolerance minutes");
+
+        $this->assertSame($rendu->format('Y-m-d H:i'), Disponibilite::etatActuel($this->v)?->format('Y-m-d H:i'));
+        $this->assertFalse(Disponibilite::estLibre($this->v, maintenant(), maintenant()->modify('+1 day')));
+        $this->assertTrue(Disponibilite::estLibre($this->v, $rendu, $rendu->modify('+1 day')));
+        $this->assertContains(maintenant()->format('Y-m-d'), Disponibilite::joursPris($this->v));
+    }
+
+    public function testLocationDontLaToleranceEstPasseeNeComptePlus(): void
+    {
+        $tolerance = config('regles.tolerance_retour_minutes');
+        $fin = maintenant()->modify('-' . ($tolerance + 1) . ' minutes');
+        $this->insere(maintenant()->modify('-2 days')->format('Y-m-d H:i'), $fin->format('Y-m-d H:i'), 'confirmee');
+
+        $this->assertNull(Disponibilite::etatActuel($this->v));
+        $this->assertSame([], Disponibilite::occupations('jetour-t2'));
+    }
+
     public function testJoursPrisPourLeCalendrier(): void
     {
         // Du lundi 9 h au mercredi 9 h : lundi, mardi et mercredi (heure de tolérance comprise).
