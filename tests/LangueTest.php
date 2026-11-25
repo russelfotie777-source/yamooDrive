@@ -29,6 +29,32 @@ final class LangueTest extends TestCase
         $this->assertSame('rtl', Langue::info('sens'));
     }
 
+    public function testTexteDansUneAutreLangueSansChangerCelleDeLaPage(): void
+    {
+        Langue::depuisChemin('/de/vehicules');
+
+        $texte = Langue::dans('en', fn () => [t('Réservation annulée.'), url('/vehicules')]);
+
+        $this->assertSame(['Booking cancelled.', '/en/vehicules'], $texte);
+        $this->assertSame('de', Langue::$code);
+        $this->assertSame('Buchung storniert.', t('Réservation annulée.'));
+    }
+
+    public function testLangueDeLaPageRetrouveeApresUneErreur(): void
+    {
+        try {
+            Langue::dans('zh', fn () => throw new \RuntimeException('coupure'));
+        } catch (\RuntimeException) {
+        }
+
+        $this->assertSame('fr', Langue::$code);
+    }
+
+    public function testLangueInconnueGardeCelleDeLaPage(): void
+    {
+        $this->assertSame('Réservation annulée.', Langue::dans('xx', fn () => t('Réservation annulée.')));
+    }
+
     public function testAccueilDUneLangue(): void
     {
         $this->assertSame('/', Langue::depuisChemin('/en'));
