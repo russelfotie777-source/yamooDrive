@@ -96,7 +96,7 @@ $anciennete = !empty($conducteur['permis']) ? date_locale($conducteur['permis'])
       <p><a href="tel:<?= e($r['client_telephone']) ?>"><?= e(telephone_lisible($r['client_telephone'])) ?></a></p>
       <?php if ($r['client_email']): ?><p><a href="mailto:<?= e($r['client_email']) ?>"><?= e($r['client_email']) ?></a></p><?php endif ?>
       <p class="discret">A réservé en <?= e(Yamoo\Langue::LANGUES[$r['langue'] ?? 'fr']['nom'] ?? 'Français') ?></p>
-      <a class="bouton bouton-petit bouton-contour" href="https://wa.me/<?= e(ltrim($r['client_telephone'], '+')) ?>?text=<?= rawurlencode('Bonjour ' . $r['client_nom'] . ', Yamoo Drive au sujet de votre réservation ' . $r['code'] . '.') ?>" target="_blank" rel="noopener"><?= icone('whatsapp') ?>Écrire au client</a>
+      <a class="bouton bouton-petit bouton-contour" href="https://wa.me/<?= e(ltrim($r['client_telephone'], '+')) ?>?text=<?= rawurlencode(Reservations::messageAuClient($r)) ?>" target="_blank" rel="noopener"><?= icone('whatsapp') ?>Écrire au client</a>
     </section>
     <section class="panneau">
       <h2 class="panneau-titre">Journal</h2>
