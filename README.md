@@ -39,7 +39,7 @@ Six langues : français à la racine, anglais `/en/`, espagnol `/es/`, allemand 
 
 Les textes sont écrits en français dans le code (`t('…')`) et traduits dans `langues/textes.php`, une ligne par texte avec ses cinq traductions. Les nombres, les dates et les pluriels suivent les règles de chaque langue (ICU). `composer test` signale un texte du code ou de `config/` sans traduction, une traduction qui perd un paramètre (`{prix}`, `{n, plural, …}`), une forme ICU cassée ou une clé écrite deux fois. Pour les textes construits à la volée, lancer le serveur avec `RELEVE_TRADUCTIONS=/tmp/releve.jsonl` et parcourir le site : chaque texte sans traduction y est noté.
 
-Les traductions chinoises et arabes gagneraient à être relues par une personne de langue maternelle avant la mise en ligne. L’espace équipe reste en français ; il indique la langue dans laquelle chaque client a réservé.
+Les traductions chinoises et arabes gagneraient à être relues par une personne de langue maternelle avant la mise en ligne. L’espace équipe reste en français ; il indique la langue dans laquelle chaque client a réservé, et son bouton « Écrire au client » ouvre WhatsApp avec un premier message dans cette langue, suivi du lien de la réservation, pour le client qui l’a perdu.
 
 ## Référencement
 
