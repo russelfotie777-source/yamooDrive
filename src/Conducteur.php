@@ -26,6 +26,17 @@ final class Conducteur
         return $date && $date->format('Y-m-d') === $saisie ? $date : null;
     }
 
+    // Mêmes messages sur le serveur et dans le formulaire, qui contrôle au fil de la saisie.
+    public static function messageAge(): string
+    {
+        return t('Le conducteur doit avoir au moins {age} ans le jour du départ. Choisissez la formule avec chauffeur.', ['age' => config('regles.age_minimum')]);
+    }
+
+    public static function messagePermis(): string
+    {
+        return t('Le permis doit avoir au moins {ans} ans le jour du départ. Choisissez la formule avec chauffeur.', ['ans' => config('regles.anciennete_permis_ans')]);
+    }
+
     /** @return array<string, string> erreurs par champ */
     public static function verifie(?DateTimeImmutable $naissance, ?DateTimeImmutable $permis, DateTimeImmutable $depart): array
     {
@@ -35,14 +46,14 @@ final class Conducteur
         if (!$naissance) {
             $erreurs['naissance'] = t('Indiquez la date de naissance du conducteur.');
         } elseif ($naissance->modify("+$age years") > $depart) {
-            $erreurs['naissance'] = t('Le conducteur doit avoir au moins {age} ans le jour du départ. Choisissez la formule avec chauffeur.', ['age' => $age]);
+            $erreurs['naissance'] = self::messageAge();
         }
         if (!$permis) {
             $erreurs['permis'] = t('Indiquez la date d’obtention du permis.');
         } elseif ($permis > maintenant()) {
             $erreurs['permis'] = t('La date d’obtention du permis est dans le futur. Vérifiez-la.');
         } elseif ($permis->modify("+$anciennete years") > $depart) {
-            $erreurs['permis'] = t('Le permis doit avoir au moins {ans} ans le jour du départ. Choisissez la formule avec chauffeur.', ['ans' => $anciennete]);
+            $erreurs['permis'] = self::messagePermis();
         }
         return $erreurs;
     }

@@ -21,7 +21,8 @@ $facultatif = '<span class="facultatif">' . e(t('facultatif')) . '</span>';
 
   <div class="reserver-grille">
     <form class="formulaire" method="post" action="<?= url('/reserver/' . $v['slug']) ?>" enctype="multipart/form-data" novalidate data-formulaire
-          data-total="<?= e(fcfa($devis['total'])) ?>" data-naissance-max="<?= e($demande->debut->modify('-' . $r['age_minimum'] . ' years')->format('Y-m-d')) ?>" data-permis-max="<?= e($demande->debut->modify('-' . $r['anciennete_permis_ans'] . ' years')->format('Y-m-d')) ?>">
+          data-total="<?= e(fcfa($devis['total'])) ?>" data-naissance-max="<?= e($demande->debut->modify('-' . $r['age_minimum'] . ' years')->format('Y-m-d')) ?>" data-permis-max="<?= e($demande->debut->modify('-' . $r['anciennete_permis_ans'] . ' years')->format('Y-m-d')) ?>"
+          data-naissance-erreur="<?= e(Conducteur::messageAge()) ?>" data-permis-erreur="<?= e(Conducteur::messagePermis()) ?>">
       <?= champ_csrf() ?>
       <?php foreach ($demande->versParams() as $cle => $valeur): if ($valeur === null) continue; ?>
         <input type="hidden" name="<?= e($cle) ?>" value="<?= e($valeur) ?>">

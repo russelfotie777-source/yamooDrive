@@ -26,7 +26,6 @@ final class Langue
         'Choisir mes dates', 'Réserver', 'par jour', 'Vérifiez les dates.',
         'Le prix n’a pas pu être calculé. Vérifiez votre connexion puis réessayez.',
         'Envoyer ma demande', 'Payer {total}', 'Âge vérifié pour la date de départ.', 'Ancienneté du permis vérifiée.',
-        'Le conducteur doit avoir au moins 23 ans le jour du départ.', 'Le permis doit avoir au moins 2 ans le jour du départ.',
         'Fichiers ajoutés : {n}', 'Envoi en cours…',
         'Paiement reçu. Ouverture de votre réservation…', 'Connexion perdue. Nouvel essai dans quelques secondes…',
         'Toujours en attente. Vérifiez votre téléphone.',
