@@ -3,6 +3,7 @@
 namespace Yamoo\Tests;
 
 use MessageFormatter;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Yamoo\Conducteur;
 use Yamoo\Langue;
@@ -85,6 +86,31 @@ final class TraductionsTest extends TestCase
         }
 
         $this->assertSame([], $invalides);
+    }
+
+    public static function nombresEnArabe(): array
+    {
+        $permis = 'Le permis doit avoir au moins {ans} ans le jour du départ. Choisissez la formule avec chauffeur.';
+        $delai = 'Le départ doit être au moins {heures} heures après maintenant. Choisissez une heure plus tardive.';
+        return [
+            'permis de 2 ans' => [$permis, ['ans' => 2], 'عمر الرخصة عامين على الأقل'],
+            'permis de 3 ans' => [$permis, ['ans' => 3], 'عمر الرخصة 3 أعوام على الأقل'],
+            'permis de 11 ans' => [$permis, ['ans' => 11], 'عمر الرخصة 11 عامًا على الأقل'],
+            'conducteur de 23 ans' => ['Le conducteur doit avoir au moins {age} ans le jour du départ. Choisissez la formule avec chauffeur.', ['age' => 23], 'عن 23 عامًا يوم'],
+            'départ dans 2 heures' => [$delai, ['heures' => 2], 'بعد ساعتين على الأقل'],
+            'départ dans 3 heures' => [$delai, ['heures' => 3], 'بعد 3 ساعات على الأقل'],
+            'tolérance de 60 minutes' => ['Une tolérance de {minutes} minutes est accordée au retour. Au-delà, une journée supplémentaire peut être facturée.', ['minutes' => 60], 'مدتها 60 دقيقة عند'],
+            '7 places' => ['{n} places', ['n' => 7], '7 مقاعد'],
+        ];
+    }
+
+    // En arabe, le nom compté change de forme avec le nombre : عامين (2), 3 أعوام, 11 عامًا.
+    #[DataProvider('nombresEnArabe')]
+    public function testLeNomCompteSAccordeEnArabe(string $fr, array $valeurs, string $attendu): void
+    {
+        $texte = MessageFormatter::formatMessage(self::LOCALES['ar'], self::$textes[$fr][4], $valeurs);
+
+        $this->assertStringContainsString($attendu, $texte);
     }
 
     // Une clé écrite deux fois écrase la première sans prévenir.
