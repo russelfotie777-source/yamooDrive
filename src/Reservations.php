@@ -201,6 +201,25 @@ final class Reservations
         return date_locale($r['debut'])->modify('-' . config('regles.annulation_gratuite_heures') . ' hours');
     }
 
+    // « Réserver de nouveau » repart du même véhicule, de la même formule et des mêmes
+    // lieux. Les dates suivent tant qu'on peut encore partir à ces heures.
+    public static function nouvelleDemande(array $r): Demande
+    {
+        $d = Demande::depuis([
+            'formule' => $r['formule'],
+            'lieu' => $r['lieu_depart'],
+            'lieu_retour' => $r['lieu_retour'],
+            'debut' => $r['debut'],
+            'fin' => $r['fin'],
+        ], $r['v']);
+        if (!$d->valideDates()) {
+            $d->debut = null;
+            $d->fin = null;
+            $d->erreurs = [];
+        }
+        return $d;
+    }
+
     public static function messageWhatsapp(array $r): string
     {
         $v = $r['v'];

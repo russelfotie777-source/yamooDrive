@@ -18,6 +18,7 @@ $lien = url_absolue('/reservation/' . $r['code'], ['j' => $r['jeton']]);
 $actif = in_array($r['statut'], ['demande', 'confirmee'], true);
 $detail = $r['mission_detail'];
 $limite = Reservations::limiteAnnulation($r);
+$nouvelle = $actif ? null : Reservations::nouvelleDemande($r);
 // Une réservation à payer à la remise des clés n'a pas d'opérateur : quand l'équipe note
 // le paiement, c'est elle qui l'a reçu.
 $paiement = match (true) {
@@ -71,7 +72,7 @@ $paiement = match (true) {
         </section>
       <?php else: ?>
         <div class="actions">
-          <a class="bouton bouton-large bouton-plein" href="<?= e(url('/vehicules/' . $v['slug'])) ?>"><?= e(t('Réserver de nouveau')) ?></a>
+          <a class="bouton bouton-large bouton-plein" href="<?= e(url('/vehicules/' . $v['slug'], $nouvelle->versParams()) . ($nouvelle->aDesDates() ? '#reserver' : '')) ?>"><?= e(t('Réserver de nouveau')) ?></a>
         </div>
       <?php endif ?>
     </div>
