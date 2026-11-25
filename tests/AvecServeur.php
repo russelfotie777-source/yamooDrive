@@ -52,6 +52,21 @@ trait AvecServeur
         return $cookie;
     }
 
+    /** Se connecte à l'espace équipe comme un membre de l'équipe et rend le cookie de sa session. */
+    private function connecteEquipe(): string
+    {
+        [, $corps, $entetes] = $this->demande('/equipe');
+        preg_match('/name="_csrf" value="([a-f0-9]+)"/', $corps, $csrf);
+        $cookie = self::cookieDeSession($entetes);
+        [$code, , $entetes] = $this->demande('/equipe/connexion', ['_csrf' => $csrf[1] ?? '', 'mot_de_passe' => getenv('ADMIN_MOT_DE_PASSE')], $cookie);
+        // La connexion change l'identifiant de session.
+        $cookie = self::cookieDeSession($entetes) ?? $cookie;
+        if ($code !== 303 || !str_contains($this->demande('/equipe', null, $cookie)[1], 'Se déconnecter')) {
+            throw new \RuntimeException('La connexion à l’espace équipe a échoué.');
+        }
+        return $cookie;
+    }
+
     /**
      * GET, ou POST quand un formulaire est donné. Les redirections ne sont pas suivies.
      * @param list<string> $entetes en-têtes de plus, comme « X-Forwarded-Proto: https »
