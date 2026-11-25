@@ -9,7 +9,11 @@ use DateTimeImmutable;
 // L'heure de tolérance au retour reste réservée au client.
 final class Disponibilite
 {
-    /** @return list<array{debut: string, fin: string, type: string}> */
+    /**
+     * « fin » compte l'heure de tolérance. Une réservation donne aussi son code, son état et
+     * son heure de retour prévue (« retour »), pour l'espace équipe.
+     * @return list<array{debut: string, fin: string, type: string, code?: string, statut?: string, retour?: string}>
+     */
     public static function occupations(string $vehicule, ?string $depuis = null, ?int $saufId = null): array
     {
         $tolerance = (int) config('regles.tolerance_retour_minutes');
@@ -19,7 +23,7 @@ final class Disponibilite
         // jusqu'à la fin de son heure de tolérance.
         $retourDepuis = date_locale($depuis)->modify("-$tolerance minutes")->format('Y-m-d H:i');
         $q = Base::pdo()->prepare(
-            "SELECT id, debut, fin, statut FROM reservations
+            "SELECT id, code, debut, fin, statut FROM reservations
              WHERE vehicule = :v AND fin >= :retour_depuis AND (:sauf IS NULL OR id != :sauf)
                AND (statut IN ('demande', 'confirmee') OR (statut = 'attente_paiement' AND expire_le > :maintenant))"
         );
@@ -30,6 +34,9 @@ final class Disponibilite
                 'debut' => $r['debut'],
                 'fin' => date_locale($r['fin'])->modify("+$tolerance minutes")->format('Y-m-d H:i'),
                 'type' => 'reservation',
+                'code' => $r['code'],
+                'statut' => $r['statut'],
+                'retour' => $r['fin'],
             ];
         }
         $q = Base::pdo()->prepare('SELECT debut, fin, motif FROM indisponibilites WHERE vehicule = ? AND fin >= ?');
