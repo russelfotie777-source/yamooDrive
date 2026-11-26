@@ -48,6 +48,12 @@ if (preg_match('#^/fr(/.*)?$#', $chemin, $m)) {
     redirige(base() . ($m[1] ?? '/') . (($_SERVER['QUERY_STRING'] ?? '') !== '' ? '?' . $_SERVER['QUERY_STRING'] : ''), 301);
 }
 $chemin = Langue::depuisChemin($chemin);
+// L'espace équipe ne vit qu'en français, à la racine. Sous /en/equipe, ses libellés
+// français côtoieraient des dates et des montants à l'anglaise (« 110,000 FCFA ») et
+// ses liens garderaient le préfixe. 308 : un formulaire envoyé là repart tel quel.
+if (Langue::$code !== 'fr' && preg_match('#^/equipe(/|$)#', $chemin)) {
+    redirige(base() . $chemin . (($_SERVER['QUERY_STRING'] ?? '') !== '' ? '?' . $_SERVER['QUERY_STRING'] : ''), 308);
+}
 
 $routes = [
     ['GET', '#^/$#', [Pages::class, 'accueil']],

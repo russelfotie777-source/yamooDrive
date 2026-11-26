@@ -143,6 +143,45 @@ final class EspaceEquipeTest extends TestCase
         );
     }
 
+    // Sous /en/equipe, les libellés français côtoieraient des dates et des montants à
+    // l'anglaise : l'espace équipe n'a qu'une adresse, à la racine.
+    public static function adressesSousUneLangue(): array
+    {
+        return [
+            'réservations' => ['/en/equipe', '/equipe'],
+            'flotte' => ['/ar/equipe/flotte', '/equipe/flotte'],
+            'recherche' => ['/de/equipe?q=672', '/equipe?q=672'],
+            'une réservation' => ['/zh/equipe/reservations/YD-ABC234', '/equipe/reservations/YD-ABC234'],
+        ];
+    }
+
+    #[DataProvider('adressesSousUneLangue')]
+    public function testEspaceEquipeSeulementALaRacine(string $adresse, string $attendue): void
+    {
+        [$code, , $entetes] = $this->demande($adresse);
+
+        $this->assertSame(308, $code);
+        $this->assertContains("Location: $attendue", $entetes);
+    }
+
+    // Une page de connexion ouverte sous /en/equipe avant ce renvoi envoie son formulaire
+    // là : le 308 le fait repartir tel quel vers la racine, et la connexion aboutit.
+    public function testConnexionEnvoyeeSousUneLangueAboutit(): void
+    {
+        [, $corps, $entetes] = $this->demande('/equipe');
+        preg_match('/name="_csrf" value="([a-f0-9]+)"/', $corps, $csrf);
+        $cookie = self::cookieDeSession($entetes);
+        $formulaire = ['_csrf' => $csrf[1], 'mot_de_passe' => getenv('ADMIN_MOT_DE_PASSE')];
+
+        [$code, , $entetes] = $this->demande('/en/equipe/connexion', $formulaire, $cookie);
+        $this->assertSame(308, $code);
+        $this->assertContains('Location: /equipe/connexion', $entetes);
+
+        [$code, , $entetes] = $this->demande('/equipe/connexion', $formulaire, $cookie);
+        $this->assertSame(303, $code);
+        $this->assertStringContainsString('Se déconnecter', $this->demande('/equipe', null, self::cookieDeSession($entetes) ?? $cookie)[1]);
+    }
+
     public function testMauvaisMotDePasseRefuse(): void
     {
         [, $corps, $entetes] = $this->demande('/equipe');
