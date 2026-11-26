@@ -7,6 +7,7 @@ use PHPUnit\Framework\Attributes\RequiresPhpExtension;
 use PHPUnit\Framework\TestCase;
 use Yamoo\Assistant\Simple;
 use Yamoo\Base;
+use Yamoo\Flotte;
 
 // Réponses intégrées de l'assistant, utilisées sans clé d'API ou quand l'API ne répond pas.
 #[RequiresPhpExtension('pdo_sqlite')]
@@ -67,6 +68,48 @@ final class AssistantSimpleTest extends TestCase
     {
         $this->assertStringNotContainsString('demain', $this->reponse('Guten Morgen, welche Autos haben Sie?'));
         $this->assertStringStartsWith('Pour demain', $this->reponse('Guten Morgen, welche Autos sind morgen frei?'));
+    }
+
+    // Le premier prix annoncé est celui des véhicules trouvés, dans la formule demandée :
+    // un 7 places avec chauffeur ne se loue pas au prix du plus petit SUV sans chauffeur.
+    public static function formulesDemandees(): array
+    {
+        return ['avec chauffeur' => ['avec'], 'sans chauffeur' => ['sans']];
+    }
+
+    #[DataProvider('formulesDemandees')]
+    public function testPremierPrixDesSeptPlacesDansLaFormuleDemandee(string $formule): void
+    {
+        $prix = Flotte::plancher($formule, Flotte::filtre(null, $formule, 7));
+
+        $this->assertSame(
+            "Voici les véhicules qui correspondent, $formule chauffeur à partir de **" . fcfa($prix) . '** par jour. Choisissez vos dates sur la fiche pour voir le prix total.',
+            $this->reponse("Un 7 places $formule chauffeur")
+        );
+    }
+
+    public function testPremierPrixDesSeptPlacesDansLesDeuxFormules(): void
+    {
+        $sept = Flotte::filtre(null, null, 7);
+
+        $this->assertSame(
+            'Voici les véhicules qui correspondent. Sans chauffeur à partir de **' . fcfa(Flotte::plancher('sans', $sept)) . '** par jour, avec chauffeur à partir de **' . fcfa(Flotte::plancher('avec', $sept)) . '**. Choisissez vos dates sur la fiche pour voir le prix total.',
+            $this->reponse('Un 7 places')
+        );
+    }
+
+    // Les minibus ne se louent qu'avec chauffeur : l'assistant ne cite pas de prix sans.
+    public function testPremierPrixAvecChauffeurSeulQuandAucunVehiculeTrouveNeSeLoueSans(): void
+    {
+        $douze = Flotte::filtre(null, null, 12);
+        if (Flotte::plancher('sans', $douze) !== null) {
+            $this->markTestSkipped('La grille propose un 12 places sans chauffeur.');
+        }
+
+        $this->assertSame(
+            'Voici les véhicules qui correspondent, avec chauffeur à partir de **' . fcfa(Flotte::plancher('avec', $douze)) . '** par jour. Choisissez vos dates sur la fiche pour voir le prix total.',
+            $this->reponse('Un 12 places')
+        );
     }
 
     private function reponse(string $question): string
