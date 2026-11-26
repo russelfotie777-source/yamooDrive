@@ -121,7 +121,7 @@ final class Admin
                 Pages::flash('Réservation confirmée.');
                 break;
             case 'payee':
-                Reservations::maj($r['id'], ['paiement_statut' => 'paye', 'statut' => in_array($r['statut'], ['demande', 'attente_paiement'], true) ? 'confirmee' : $r['statut'], 'expire_le' => null], 'Paiement encaissé à l’agence : ' . fcfa($r['total']) . '.', 'paiement');
+                Reservations::maj($r['id'], ['paiement_statut' => 'paye', 'statut' => in_array($r['statut'], ['demande', 'attente_paiement'], true) ? 'confirmee' : $r['statut'], 'expire_le' => null], 'Paiement encaissé à l’agence : ' . fcfa_francais($r['total']) . '.', 'paiement');
                 Pages::flash('Paiement enregistré.');
                 break;
             case 'terminer':
@@ -130,7 +130,7 @@ final class Admin
                 Pages::flash('Location terminée.');
                 break;
             case 'annuler':
-                Reservations::maj($r['id'], ['statut' => 'annulee'], 'Annulée par l’équipe.' . ($r['paiement_statut'] === 'paye' ? ' Remboursement de ' . fcfa($r['total']) . ' à faire.' : ''));
+                Reservations::maj($r['id'], ['statut' => 'annulee'], 'Annulée par l’équipe.' . ($r['paiement_statut'] === 'paye' ? ' Remboursement de ' . fcfa_francais($r['total']) . ' à faire.' : ''));
                 Pages::flash('Réservation annulée.');
                 break;
             case 'note':

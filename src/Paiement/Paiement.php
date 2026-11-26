@@ -68,7 +68,7 @@ final class Paiement
             return self::reponseApresEquipe($r, $etat);
         }
         if ($etat === 'paye') {
-            Reservations::maj($r['id'], ['paiement_statut' => 'paye', 'statut' => 'confirmee', 'expire_le' => null], 'Paiement reçu : ' . fcfa($r['total']) . '.', 'paiement');
+            Reservations::maj($r['id'], ['paiement_statut' => 'paye', 'statut' => 'confirmee', 'expire_le' => null], 'Paiement reçu : ' . fcfa_francais($r['total']) . '.', 'paiement');
         } elseif ($etat === 'echec') {
             Reservations::maj($r['id'], ['paiement_statut' => 'echec'], 'Paiement refusé ou annulé sur le téléphone.', 'paiement');
         }
@@ -82,9 +82,9 @@ final class Paiement
         $pdo = Base::pdo();
         $pdo->exec('BEGIN IMMEDIATE');
         if ($r['v'] && Disponibilite::estLibre($r['v'], date_locale($r['debut']), date_locale($r['fin']), $r['id'])) {
-            Reservations::maj($r['id'], ['paiement_statut' => 'paye', 'statut' => 'confirmee', 'expire_le' => null], 'Paiement reçu après le délai : ' . fcfa($r['total']) . '. Véhicule encore libre, réservation confirmée.', 'paiement');
+            Reservations::maj($r['id'], ['paiement_statut' => 'paye', 'statut' => 'confirmee', 'expire_le' => null], 'Paiement reçu après le délai : ' . fcfa_francais($r['total']) . '. Véhicule encore libre, réservation confirmée.', 'paiement');
         } else {
-            Reservations::maj($r['id'], ['paiement_statut' => 'paye'], 'Paiement reçu après le délai : ' . fcfa($r['total']) . '. Le véhicule a été réservé entre-temps : remboursement à faire.', 'paiement');
+            Reservations::maj($r['id'], ['paiement_statut' => 'paye'], 'Paiement reçu après le délai : ' . fcfa_francais($r['total']) . '. Le véhicule a été réservé entre-temps : remboursement à faire.', 'paiement');
         }
         $pdo->exec('COMMIT');
         return Reservations::parCode($r['code']);
@@ -95,8 +95,8 @@ final class Paiement
     {
         if ($etat === 'paye') {
             $note = $r['statut'] === 'annulee'
-                ? 'Paiement reçu après l’annulation : ' . fcfa($r['total']) . '. Remboursement à faire.'
-                : 'Paiement reçu : ' . fcfa($r['total']) . '.';
+                ? 'Paiement reçu après l’annulation : ' . fcfa_francais($r['total']) . '. Remboursement à faire.'
+                : 'Paiement reçu : ' . fcfa_francais($r['total']) . '.';
             Reservations::maj($r['id'], ['paiement_statut' => 'paye'], $note, 'paiement');
         } elseif ($etat === 'echec') {
             Reservations::maj($r['id'], ['paiement_statut' => 'echec'], 'Paiement refusé ou annulé sur le téléphone.', 'paiement');

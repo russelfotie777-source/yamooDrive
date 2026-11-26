@@ -8,6 +8,7 @@ use PHPUnit\Framework\TestCase;
 use Yamoo\Base;
 use Yamoo\Demande;
 use Yamoo\Devis;
+use Yamoo\Langue;
 use Yamoo\Paiement\Paiement;
 use Yamoo\Reservations;
 
@@ -193,6 +194,23 @@ final class ReservationsTest extends TestCase
         $this->assertSame('annulee', $r['statut']);
         $this->assertSame('paye', $r['paiement_statut']);
         $this->assertStringContainsString('Remboursement à faire', Reservations::journal($r['id'])[0]['detail']);
+    }
+
+    public static function languesDesPages(): array
+    {
+        return ['anglais' => ['en'], 'espagnol' => ['es'], 'allemand' => ['de'], 'chinois' => ['zh'], 'arabe' => ['ar']];
+    }
+
+    // Le client attend son paiement sur une page en allemand ou en arabe : la note du
+    // journal reste écrite comme le lit l'équipe, sans « 110.000 » ni marques de sens.
+    #[DataProvider('languesDesPages')]
+    public function testLeJournalGardeLeMontantEnFrancais(string $langue): void
+    {
+        $r = $this->enCours($this->cree(), time() - 60);
+
+        Langue::dans($langue, fn () => Paiement::verifie($r));
+
+        $this->assertSame('Paiement reçu : ' . fcfa($r['total']) . '.', Reservations::journal($r['id'])[0]['detail']);
     }
 
     public function testPaiementRefuseApresLaConfirmationDeLEquipe(): void
