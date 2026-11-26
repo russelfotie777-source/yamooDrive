@@ -48,18 +48,19 @@ final class Flotte
 
     // Prix « à partir de » : le moins cher des véhicules qui proposent la formule, ou de
     // toute la flotte sans formule. Lu dans la grille, il suit les vrais tarifs quand ils
-    // remplacent les provisoires.
-    public static function plancher(?string $formule = null): int
+    // remplacent les provisoires. Avec une liste (un 7 places, une catégorie), le plancher
+    // est celui de ces véhicules ; null si aucun ne propose la formule.
+    public static function plancher(?string $formule = null, ?array $vehicules = null): ?int
     {
         $prix = [];
-        foreach (self::tous() as $v) {
+        foreach ($vehicules ?? self::tous() as $v) {
             foreach ($v['tarifs'] as $f => $p) {
                 if ($formule === null || $f === $formule) {
                     $prix[] = $p;
                 }
             }
         }
-        return min($prix);
+        return $prix ? min($prix) : null;
     }
 
     // Formule par défaut : celle demandée si le véhicule la propose, sinon la moins chère.
