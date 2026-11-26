@@ -1,5 +1,6 @@
 <?php
 /** @var string $contenu */
+use Yamoo\Flotte;
 use Yamoo\Langue;
 
 $titreComplet = ($page ?? '') === 'accueil' ? 'Yamoo Drive – ' . $titre : $titre . ' – Yamoo Drive';
@@ -43,7 +44,7 @@ $scripts ??= [];
     'logo' => url_absolue('/assets/img/marque/icone-512.png'),
     'address' => ['@type' => 'PostalAddress', 'streetAddress' => 'Logpom, carrefour Adem', 'addressLocality' => 'Douala', 'addressRegion' => 'Littoral', 'addressCountry' => 'CM'],
     'areaServed' => ['Douala', 'Yaoundé', 'Bafoussam'],
-    'priceRange' => t('À partir de {prix} par jour', ['prix' => fcfa(30000)]),
+    'priceRange' => t('À partir de {prix} par jour', ['prix' => fcfa(Flotte::plancher())]),
     'availableLanguage' => array_column(Langue::LANGUES, 'nom'),
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) ?></script>
 <script type="application/json" id="textes-js"><?= json_encode(Langue::textesJs(), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?></script>
