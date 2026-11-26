@@ -319,7 +319,15 @@ final class Pages
             redirige(url('/reservation/' . $code, ['j' => $r['jeton']]));
         }
         $operateur = in_array($_POST['operateur'] ?? '', ['mtn', 'orange'], true) ? $_POST['operateur'] : $r['paiement_operateur'];
-        $numero = Paiement::numero((string) ($_POST['numero'] ?? '')) ?? $r['paiement_numero'];
+        // Un numéro mal recopié ne renvoie pas la demande à l'ancien, celui qui vient
+        // d'échouer : le client croirait payer avec le nouveau et attendrait pour rien.
+        $saisie = trim((string) ($_POST['numero'] ?? ''));
+        $numero = Paiement::numero($saisie);
+        if (!$numero) {
+            http_response_code(422);
+            self::pagePaiement(['paiement_operateur' => $operateur] + $r, t('Écrivez le numéro Mobile Money à 9 chiffres, par exemple 6 72 89 40 84.'), $saisie);
+            return;
+        }
         Reservations::maj($r['id'], [
             'paiement_operateur' => $operateur,
             'paiement_numero' => $numero,
