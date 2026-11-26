@@ -97,6 +97,22 @@ final class PageReservationTest extends TestCase
     }
 
     /** @return array{string, array, ?string} chemin, paramètres et ancre du bouton « Réserver de nouveau » */
+    // Le client annule depuis sa page en allemand une réservation déjà payée : l'équipe lit
+    // en français le montant à lui rendre, pas « 110.000 FCFA ».
+    public function testAnnulationDuClientNoteLeRemboursementEnFrancais(): void
+    {
+        $r = $this->cree(['paiement_mode' => 'mobile', 'operateur' => 'mtn', 'numero' => '+237672894084']);
+        Reservations::maj($r['id'], ['statut' => 'confirmee', 'paiement_statut' => 'paye', 'expire_le' => null]);
+        [, $corps, $entetes] = $this->demande('/de/reservation/' . $r['code'] . '?j=' . $r['jeton']);
+        preg_match('/name="_csrf" value="([a-f0-9]+)"/', $corps, $csrf);
+
+        [$code] = $this->demande('/de/reservation/' . $r['code'] . '/annuler', ['_csrf' => $csrf[1] ?? '', 'j' => $r['jeton']], self::cookieDeSession($entetes));
+
+        $this->assertSame(303, $code);
+        $this->assertSame('annulee', Reservations::parCode($r['code'])['statut']);
+        $this->assertSame('Annulée par le client. Remboursement de ' . fcfa($r['total']) . ' à faire.', Reservations::journal($r['id'])[0]['detail']);
+    }
+
     private function lienReserverDeNouveau(array $r): array
     {
         [$code, $corps] = $this->demande('/reservation/' . $r['code'] . '?j=' . $r['jeton']);
