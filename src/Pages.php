@@ -356,7 +356,7 @@ final class Pages
         if (!Reservations::annulableParClient($r)) {
             self::flash(t('L’annulation gratuite n’est plus possible pour cette réservation. Écrivez-nous sur WhatsApp.'));
         } else {
-            $note = 'Annulée par le client.' . ($r['paiement_statut'] === 'paye' ? ' Remboursement de ' . fcfa($r['total']) . ' à faire.' : '');
+            $note = 'Annulée par le client.' . ($r['paiement_statut'] === 'paye' ? ' Remboursement de ' . fcfa_francais($r['total']) . ' à faire.' : '');
             Reservations::maj($r['id'], ['statut' => 'annulee'], $note);
             self::flash(t('Réservation annulée.'));
         }
