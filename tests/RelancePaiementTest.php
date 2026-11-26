@@ -105,6 +105,48 @@ final class RelancePaiementTest extends TestCase
         $this->assertSame('en_cours', $relue['paiement_statut']);
     }
 
+    // Le client remplace le numéro qui a échoué mais oublie un chiffre : la demande ne
+    // repart pas vers l'ancien numéro, la page lui rend celui qu'il a écrit avec l'erreur.
+    public static function numerosMalEcrits(): array
+    {
+        return [
+            'chiffre oublié' => ['6 99 11 22 3'],
+            'champ vidé' => [''],
+            'numéro fixe' => ['2 33 42 12 34'],
+        ];
+    }
+
+    #[DataProvider('numerosMalEcrits')]
+    public function testNumeroMalEcritNeRelancePasVersLAncien(string $numero): void
+    {
+        $r = $this->refusee();
+        $formulaire = $this->ouvre($r);
+
+        [$code, $corps] = $this->envoie($r, 'relancer', $formulaire, $numero);
+
+        $this->assertSame(422, $code);
+        $relue = Reservations::parCode($r['code']);
+        $this->assertSame('echec', $relue['paiement_statut']);
+        $this->assertSame($r['paiement_reference'], $relue['paiement_reference']);
+        $this->assertSame($r['paiement_numero'], $relue['paiement_numero']);
+        $this->assertSame($r['expire_le'], $relue['expire_le']);
+        $this->assertStringContainsString('value="' . $numero . '" aria-invalid="true" aria-describedby="err-numero"', $corps);
+        $this->assertStringContainsString('Écrivez le numéro Mobile Money à 9 chiffres, par exemple 6 72 89 40 84.', $corps);
+    }
+
+    // Payer à la remise des clés ne demande aucun numéro.
+    public function testRemiseDesClesSansNumero(): void
+    {
+        $r = $this->refusee();
+        $formulaire = $this->ouvre($r);
+
+        [$code, , $entetes] = $this->envoie($r, 'remise', $formulaire, '');
+
+        $this->assertSame(303, $code);
+        $this->assertContains('Location: /reservation/' . $r['code'] . '?j=' . $r['jeton'], $entetes);
+        $this->assertSame('demande', Reservations::parCode($r['code'])['statut']);
+    }
+
     /** Ouvre la page de paiement comme le client : cookie de session et jeton du formulaire. */
     private function ouvre(array $r): array
     {

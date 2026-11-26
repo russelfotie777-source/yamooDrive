@@ -2,8 +2,9 @@
 /** @var array $r */
 $scripts = ['paiement.js'];
 $operateurs = ['mtn' => 'MTN Mobile Money', 'orange' => 'Orange Money'];
-$echec = $r['paiement_statut'] === 'echec';
-$numero = preg_replace('/^\+237 /', '', telephone_lisible($r['paiement_numero']));
+// Un numéro refusé à la relance revient tel que le client l'a écrit, avec son erreur.
+$echec = $r['paiement_statut'] === 'echec' || $erreurNumero;
+$numero = $numeroSaisi ?? preg_replace('/^\+237 /', '', telephone_lisible($r['paiement_numero']));
 ?>
 <div class="conteneur etat-page">
   <div class="etat-carte" data-paiement-attente
@@ -36,7 +37,8 @@ $numero = preg_replace('/^\+237 /', '', telephone_lisible($r['paiement_numero'])
         </fieldset>
         <div class="champ">
           <label for="numero" class="champ-libelle"><?= e(t('Numéro Mobile Money')) ?></label>
-          <input id="numero" name="numero" type="tel" inputmode="tel" dir="ltr" value="<?= e($numero) ?>">
+          <input id="numero" name="numero" type="tel" inputmode="tel" dir="ltr" value="<?= e($numero) ?>"<?= $erreurNumero ? ' aria-invalid="true" aria-describedby="err-numero" autofocus' : '' ?>>
+          <?php if ($erreurNumero): ?><p class="champ-erreur" id="err-numero"><?= icone('info') ?><?= e($erreurNumero) ?></p><?php endif ?>
         </div>
         <div class="actions">
           <button class="bouton bouton-plein" type="submit" name="choix" value="relancer"><?= e(t('Relancer le paiement')) ?></button>
