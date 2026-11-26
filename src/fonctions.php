@@ -131,6 +131,14 @@ function fcfa(int|float $montant): string
     return Yamoo\Langue::info('sens') === 'rtl' ? "\u{2066}$texte\u{2069}" : $texte;
 }
 
+// Montant écrit en français quelle que soit la langue de la page. Le journal de l'équipe
+// se lit ainsi, alors que la page du client qui constate un paiement ou une annulation peut
+// être en allemand (« 60.000 FCFA ») ou en arabe, dont le montant garde ses marques de sens.
+function fcfa_francais(int|float $montant): string
+{
+    return Yamoo\Langue::dans('fr', fn () => fcfa($montant));
+}
+
 function nombre(int|float $n): string
 {
     static $formats = [];
