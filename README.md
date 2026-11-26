@@ -29,7 +29,7 @@ composer test
 
 Les tests de `tests/` couvrent les réponses intégrées de l’assistant et les outils qu’il appelle avant de citer un prix ou une disponibilité, le devis, la lecture d’une demande, les contrôles du conducteur, les disponibilités, le paiement Mobile Money et le cycle d’une réservation, la relance d’un paiement refusé et le refus d’une seconde demande pendant que la première attend (par le vrai serveur, avec la session et le jeton du formulaire), le webhook de Notch Pay (par le vrai serveur, avec sa signature), le fichier agenda, les traductions, les formats de chaque langue, le plan du site, les adresses bricolées et les fichiers que le serveur de développement accepte de servir et ses adresses à extension, la page d’une réservation et l’espace équipe (connexion, flotte, blocage de dates), avec un mot de passe de l’équipe propre aux tests. Ils travaillent sur une base SQLite jetable créée dans le dossier temporaire, jamais sur `stockage/yamoo.sqlite`, et le paiement y reste simulé même si le `.env` local choisit Notch Pay. Il faut les extensions `intl` et `pdo_sqlite` ; sans `pdo_sqlite`, les tests de disponibilité sont sautés. Sous XAMPP : `/opt/lampp/bin/php vendor/bin/phpunit`.
 
-Les montants sont lus dans `config/` : les tests restent justes quand la vraie grille tarifaire remplace les prix provisoires.
+Les montants sont lus dans `config/` : les tests restent justes quand la vraie grille tarifaire remplace les prix provisoires. Les prix « à partir de » de l’accueil, des données structurées et de l’assistant sont ceux du véhicule le moins cher de chaque formule dans `config/flotte.php`, jamais écrits à la main.
 
 Sur GitHub, chaque PR et chaque push sur `main` relancent la syntaxe PHP et JavaScript puis les tests, avec PHP 8.2 et 8.4 (`.github/workflows/tests.yml`). Une PR dont la vérification est rouge ne se fusionne pas.
 
@@ -57,7 +57,7 @@ Les traductions chinoises et arabes gagneraient à être relues par une personne
 
 ## À valider par Yamoo Drive avant la mise en ligne
 
-Seuls les tarifs planchers sont publics (30 000 FCFA par jour sans chauffeur, 40 000 FCFA avec chauffeur). Ces valeurs sont **provisoires** :
+Seuls les tarifs planchers sont publics (30 000 FCFA par jour sans chauffeur, 40 000 FCFA avec chauffeur) : ce sont les prix du Jetour X50 dans la grille provisoire, et l’accueil affichera ceux du modèle le moins cher de la vraie grille. Ces valeurs sont **provisoires** :
 
 - prix par jour de chaque modèle : `config/flotte.php` ;
 - formules proposées par modèle (le Prado, le Land Cruiser 300, les berlines et les vans sont en « avec chauffeur » seulement) ;

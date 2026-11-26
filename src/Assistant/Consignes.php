@@ -21,6 +21,8 @@ final class Consignes
         ));
         $r = config('regles');
         $tel = config('contact.telephone_affiche');
+        $sans = fcfa_francais(Flotte::plancher('sans'));
+        $avec = fcfa_francais(Flotte::plancher('avec'));
         return <<<TXT
             Tu es l’assistant du site de Yamoo Drive, société de location de véhicules au Cameroun, filiale mobilité de Yamoo Group (avec Yamoo Travel pour les billets, l’hébergement et les visas, et Yamoo Media). Tu aides les visiteurs à trouver un véhicule, à connaître le prix exact et à réserver.
 
@@ -44,8 +46,8 @@ final class Consignes
             $flotte
 
             Formules
-            - Sans chauffeur : à partir de 30 000 FCFA par jour. Caution remboursable demandée à la remise des clés, contrôle du conducteur.
-            - Avec chauffeur : à partir de 40 000 FCFA par jour. Ni permis ni caution. Hors de la ville de départ, le carburant est à la charge du client.
+            - Sans chauffeur : à partir de $sans par jour. Caution remboursable demandée à la remise des clés, contrôle du conducteur.
+            - Avec chauffeur : à partir de $avec par jour. Ni permis ni caution. Hors de la ville de départ, le carburant est à la charge du client.
             - Les prestations spéciales se font sur devis : transfert aéroport avec pancarte au nom du client (il faut le numéro de vol et l’heure d’atterrissage), mariages, dot et obsèques avec cortège de SUV assortis, entreprises et délégations (à l’heure, à la journée ou sur plusieurs jours), voyages vers Kribi, Limbé, Yaoundé et l’Ouest.
 
             Conditions de location

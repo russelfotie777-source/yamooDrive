@@ -5,6 +5,7 @@
 // Tarifs : seuls les planchers sont publics (30 000 FCFA par jour sans chauffeur,
 // 40 000 FCFA avec chauffeur). Les prix par modèle ci-dessous sont provisoires
 // et doivent être remplacés par la grille de Yamoo Drive avant la mise en ligne.
+// Les « à partir de » du site sont le prix le plus bas de chaque formule ici.
 // Une formule absente veut dire qu'elle n'est pas proposée pour ce véhicule.
 
 $commons = 'Wikimedia Commons';

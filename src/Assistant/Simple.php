@@ -162,7 +162,7 @@ final class Simple
         if ($places || $formule || $lieu || self::contient($q, 'liste')) {
             $outils->chercher(['formule' => $formule, 'places_min' => $places, 'lieu' => $lieu]);
             return $a($outils->cartes
-                ? t('Voici les véhicules qui correspondent. Sans chauffeur à partir de **{sans}** par jour, avec chauffeur à partir de **{avec}**. Choisissez vos dates sur la fiche pour voir le prix total.', ['sans' => fcfa(30000), 'avec' => fcfa(40000)])
+                ? t('Voici les véhicules qui correspondent. Sans chauffeur à partir de **{sans}** par jour, avec chauffeur à partir de **{avec}**. Choisissez vos dates sur la fiche pour voir le prix total.', ['sans' => fcfa(Flotte::plancher('sans')), 'avec' => fcfa(Flotte::plancher('avec'))])
                 : t('Aucun véhicule ne correspond. Modifiez votre demande ou écrivez-nous sur WhatsApp.'));
         }
         if (self::contient($q, 'merci')) {

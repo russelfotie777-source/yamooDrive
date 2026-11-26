@@ -1,5 +1,7 @@
 <?php
 /** @var Yamoo\Demande $demande */
+use Yamoo\Flotte;
+
 $r = config('regles');
 $age = ['age' => $r['age_minimum'], 'permis' => $r['anciennete_permis_ans']];
 $mots = preg_split('/\s+/u', t('Louez un SUV récent, avec ou sans chauffeur'));
@@ -40,8 +42,8 @@ $services = [
     <figcaption><?= e(t('Jetour T2, le modèle phare. Photo Husskeyy,')) ?> <a href="https://commons.wikimedia.org/wiki/File:Jetour_T2_in_Milnerton,_Cape_Town.jpg" rel="noopener" target="_blank">CC BY-SA 4.0</a></figcaption>
   </figure>
   <dl class="reperes">
-    <div><dt><?= e(t('Sans chauffeur')) ?></dt><dd><?= h('À partir de <strong>{prix}</strong> par jour', ['prix' => fcfa(30000)]) ?></dd></div>
-    <div><dt><?= e(t('Avec chauffeur')) ?></dt><dd><?= h('À partir de <strong>{prix}</strong> par jour', ['prix' => fcfa(40000)]) ?></dd></div>
+    <div><dt><?= e(t('Sans chauffeur')) ?></dt><dd><?= h('À partir de <strong>{prix}</strong> par jour', ['prix' => fcfa(Flotte::plancher('sans'))]) ?></dd></div>
+    <div><dt><?= e(t('Avec chauffeur')) ?></dt><dd><?= h('À partir de <strong>{prix}</strong> par jour', ['prix' => fcfa(Flotte::plancher('avec'))]) ?></dd></div>
     <div><dt><?= e(t('Annulation gratuite')) ?></dt><dd><?= e(t('Jusqu’à {heures} heures avant le départ', ['heures' => $r['annulation_gratuite_heures']])) ?></dd></div>
     <div><dt><?= e(t('Paiement')) ?></dt><dd><?= e(t('MTN, Orange Money ou à la remise des clés')) ?></dd></div>
   </dl>
@@ -71,7 +73,7 @@ $services = [
     <div class="formules">
       <article class="formule">
         <h3><?= icone('cle') ?><?= e(t('Sans chauffeur')) ?></h3>
-        <p class="formule-prix"><?= h('À partir de <strong>{prix}</strong> par jour', ['prix' => fcfa(30000)]) ?></p>
+        <p class="formule-prix"><?= h('À partir de <strong>{prix}</strong> par jour', ['prix' => fcfa(Flotte::plancher('sans'))]) ?></p>
         <p><?= e(t('Vous prenez le volant. Idéal pour circuler librement en ville ou partir en week-end.')) ?></p>
         <ul class="liste-coches">
           <li><?= icone('check') ?><?= e(t('Conducteur de {age} ans minimum, permis depuis {permis} ans', $age)) ?></li>
@@ -83,7 +85,7 @@ $services = [
       </article>
       <article class="formule">
         <h3><?= icone('volant') ?><?= e(t('Avec chauffeur')) ?></h3>
-        <p class="formule-prix"><?= h('À partir de <strong>{prix}</strong> par jour', ['prix' => fcfa(40000)]) ?></p>
+        <p class="formule-prix"><?= h('À partir de <strong>{prix}</strong> par jour', ['prix' => fcfa(Flotte::plancher('avec'))]) ?></p>
         <p><?= e(t('Un chauffeur Yamoo Drive vous conduit. Pour les rendez-vous, les événements et les transferts.')) ?></p>
         <ul class="liste-coches">
           <li><?= icone('check') ?><?= e(t('Ni permis ni caution à fournir')) ?></li>
