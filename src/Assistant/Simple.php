@@ -160,10 +160,20 @@ final class Simple
             return $a(t('Pour la route vers Kribi, Limbé, Yaoundé ou l’Ouest, nos SUV Jetour sont à l’aise, avec ou sans chauffeur. Voici les modèles et leurs prix par jour.'));
         }
         if ($places || $formule || $lieu || self::contient($q, 'liste')) {
-            $outils->chercher(['formule' => $formule, 'places_min' => $places, 'lieu' => $lieu]);
-            return $a($outils->cartes
-                ? t('Voici les véhicules qui correspondent. Sans chauffeur à partir de **{sans}** par jour, avec chauffeur à partir de **{avec}**. Choisissez vos dates sur la fiche pour voir le prix total.', ['sans' => fcfa(Flotte::plancher('sans')), 'avec' => fcfa(Flotte::plancher('avec'))])
-                : t('Aucun véhicule ne correspond. Modifiez votre demande ou écrivez-nous sur WhatsApp.'));
+            $res = $outils->chercher(['formule' => $formule, 'places_min' => $places, 'lieu' => $lieu]);
+            if (!$outils->cartes) {
+                return $a(t('Aucun véhicule ne correspond. Modifiez votre demande ou écrivez-nous sur WhatsApp.'));
+            }
+            // Le premier prix est celui des véhicules trouvés, dans la formule demandée : celui
+            // de toute la flotte tromperait le client qui cherche un 7 places avec chauffeur.
+            $trouves = array_map(fn ($l) => Flotte::trouve($l['vehicule']), $res['vehicules']);
+            $sans = $formule === 'avec' ? null : Flotte::plancher('sans', $trouves);
+            $avec = $formule === 'sans' ? null : Flotte::plancher('avec', $trouves);
+            return $a(match (true) {
+                $sans !== null && $avec !== null => t('Voici les véhicules qui correspondent. Sans chauffeur à partir de **{sans}** par jour, avec chauffeur à partir de **{avec}**. Choisissez vos dates sur la fiche pour voir le prix total.', ['sans' => fcfa($sans), 'avec' => fcfa($avec)]),
+                $sans !== null => t('Voici les véhicules qui correspondent, sans chauffeur à partir de **{prix}** par jour. Choisissez vos dates sur la fiche pour voir le prix total.', ['prix' => fcfa($sans)]),
+                default => t('Voici les véhicules qui correspondent, avec chauffeur à partir de **{prix}** par jour. Choisissez vos dates sur la fiche pour voir le prix total.', ['prix' => fcfa($avec)]),
+            });
         }
         if (self::contient($q, 'merci')) {
             return $a(t('Avec plaisir. Bonne route avec Yamoo Drive.'));
