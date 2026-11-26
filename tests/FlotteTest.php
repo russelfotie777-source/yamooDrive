@@ -34,6 +34,15 @@ final class FlotteTest extends TestCase
         $this->assertSame(min(Flotte::plancher('sans'), Flotte::plancher('avec')), Flotte::plancher());
     }
 
+    public function testPlancherDUneListe(): void
+    {
+        $vans = [['slug' => 'a', 'tarifs' => ['avec' => 120000]], ['slug' => 'b', 'tarifs' => ['avec' => 80000]]];
+
+        $this->assertSame(80000, Flotte::plancher('avec', $vans));
+        $this->assertSame(80000, Flotte::plancher(null, $vans));
+        $this->assertNull(Flotte::plancher('sans', $vans));
+    }
+
     #[DataProvider('formules')]
     public function testAccueilAnnonceLePlancherDeLaGrille(string $formule): void
     {
