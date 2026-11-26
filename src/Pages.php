@@ -277,12 +277,19 @@ final class Pages
         if ($r['statut'] !== 'attente_paiement') {
             redirige(url('/reservation/' . $code, ['j' => $r['jeton']]));
         }
+        self::pagePaiement($r);
+    }
+
+    private static function pagePaiement(array $r, ?string $erreurNumero = null, ?string $numeroSaisi = null): void
+    {
         vue('paiement', [
             'titre' => t('Validez le paiement'),
             'page' => 'paiement',
             'r' => $r,
             'demo' => Paiement::fournisseur()->estDemo(),
             'flash' => self::flash(),
+            'erreurNumero' => $erreurNumero,
+            'numeroSaisi' => $numeroSaisi,
         ]);
     }
 
